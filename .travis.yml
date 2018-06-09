@@ -7,7 +7,5 @@ branches:
 before_script:  
   - cd @Bonbons.koa
   - npm install
-  - cd ../demo
-  - npm install
 script:
   - npm run build
