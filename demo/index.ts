@@ -1,4 +1,4 @@
-import { app, createToken, BonbonsServer, Controller, Method, Route, BaseController, Injectable, JsonResult, JSON_RESULT_OPTIONS } from "@Bonbons";
+import { app, createToken, BonbonsServer, Controller, Method, Route, BaseController, Injectable, JsonResult, JSON_RESULT_OPTIONS, JsonResultResolvers } from "@Bonbons";
 
 const token = createToken<IA>("func-token");
 
@@ -36,20 +36,20 @@ class TestController extends BaseController {
   @Method("GET")
   @Route("/index/:abc/:def?{id}&{name}&{fuck}")
   index(abc: string, def: string, id: number, name: string, fuck: string): JsonResult {
-    console.log(this.test);
-    console.log(this.imp);
-    console.log(abc);
-    console.log(def);
-    console.log(typeof abc);
-    console.log(typeof def);
-    console.log(this.context.request.querystring);
-    console.log(id);
-    console.log(name);
-    console.log(typeof id);
-    console.log(typeof name);
-    return new JsonResult({
+    return this.toJSON({
       query: this.context.request.querystring,
-      adition: " woshinidie " + fuck + " -- " + this.imp.show()
+      moreMessage: " woshinidie " + fuck + " -- " + this.imp.show(),
+      checks: {
+        test: this.test,
+        imp: this.imp,
+        msg: { abc, def, id, name },
+        typeChecks: {
+          abc: typeof abc,
+          def: typeof def,
+          id: typeof id,
+          name: typeof name
+        }
+      }
     });
   }
 
@@ -65,5 +65,5 @@ server
   .controller(TestController)
   // .controller(BadController)
   .option(token, value)
-  .option(JSON_RESULT_OPTIONS, { staticType: true })
+  .option(JSON_RESULT_OPTIONS, { staticType: true, resolver: JsonResultResolvers.decamelize })
   .start();

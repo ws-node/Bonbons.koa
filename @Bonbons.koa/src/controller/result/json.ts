@@ -2,12 +2,12 @@ import { BonbonsConfigCollection as ConfigCollection } from "../../metadata/di";
 import { IStaticTypedResolver, JsonResultOptions, JsonResultResolver } from "../../metadata/base";
 import { JSON_RESULT_OPTIONS, STATIC_TYPED_RESOLVER } from "../../di";
 import { Formater, TypeCheck } from "../../utils";
-import { IBonbonsMethodResult } from "../../metadata/controller";
+import { IBonbonsMethodResult as SyncResult } from "../../metadata/controller";
 
 /**
  * Represent the json to send by response.
  */
-export class JsonResult implements IBonbonsMethodResult {
+export class JsonResult implements SyncResult {
 
   private options: JsonResultOptions;
 

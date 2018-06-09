@@ -27,6 +27,11 @@ export interface JsonResultOptions {
   staticType?: boolean;
 }
 
+export interface StringResultOptions {
+  encoding?: string;
+  decoding?: string;
+}
+
 export interface ErrorPageTemplate {
   render(error): string;
 }

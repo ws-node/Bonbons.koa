@@ -13,7 +13,8 @@ import {
   DI_CONTAINER,
   JSON_RESULT_OPTIONS,
   STATIC_TYPED_RESOLVER,
-  ERROR_PAGE_TEMPLATE
+  ERROR_PAGE_TEMPLATE,
+  STRING_RESULT_OPTIONS
 } from "../di";
 import {
   BonbonsEntry as Entry,
@@ -25,7 +26,7 @@ import { invalidOperation, invalidParam, TypeCheck, TypedSerializer } from "../u
 import { KOAMiddleware, KOA, KOARouter, KOAContext } from "../metadata/source";
 import { InjectScope } from "../metadata/injectable";
 import { Context } from "../controller";
-import { JsonResultOptions, ErrorPageTemplate } from "../metadata/base";
+import { JsonResultOptions, ErrorPageTemplate, StringResultOptions } from "../metadata/base";
 
 export class BonbonsServer implements IServer {
 
@@ -45,6 +46,7 @@ export class BonbonsServer implements IServer {
     this.option(DI_CONTAINER, this._di);
     this.option(STATIC_TYPED_RESOLVER, TypedSerializer);
     this.option(JSON_RESULT_OPTIONS, defaultJsonResultOptions());
+    this.option(STRING_RESULT_OPTIONS, defaultStringResultOptions());
     this.option(ERROR_PAGE_TEMPLATE, defaultErrorPageTemplate());
   }
 
@@ -114,7 +116,6 @@ export class BonbonsServer implements IServer {
         ctx.body = "hello koa2";
       })
       .listen(3000);
-    console.log(JSON.stringify(this._configs.get(JSON_RESULT_OPTIONS)));
   }
 
 
@@ -162,7 +163,6 @@ export class BonbonsServer implements IServer {
   private _decideFinalStep(route: IRoute, middlewares: KOAMiddleware[], constructor: any, methodName: string) {
     middlewares.push((ctx) => {
       const list = this._di.resolveDeps(constructor);
-      console.log(list);
       const c = new constructor(...list);
       c._ctx = new Context(ctx);
       const result: IResult = constructor.prototype[methodName].bind(c)(...this._parseFuncParams(constructor, ctx, route));
@@ -228,4 +228,8 @@ function defaultErrorPageTemplate(): ErrorPageTemplate {
 
 function defaultJsonResultOptions(): JsonResultOptions {
   return { indentation: true, staticType: false };
+}
+
+function defaultStringResultOptions(): StringResultOptions {
+  return { encoding: "utf8", decoding: "utf8" };
 }
