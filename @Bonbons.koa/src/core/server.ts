@@ -1,5 +1,5 @@
 import { IBonbonsServer as IServer } from "../metadata/core";
-import { IController } from "../metadata/controller";
+import { IController, IBonbonsControllerMetadata, IRoute } from "../metadata/controller";
 import { DIContainer, CONFIG_COLLECTION, ConfigCollection, DI_CONTAINER } from "../di";
 import {
   BonbonsEntry as Entry,
@@ -8,8 +8,9 @@ import {
   BonbonsDIContainer as DIs
 } from "../metadata/di";
 import { invalidOperation, invalidParam } from "../utils";
-import { KOAMiddleware, KOA } from "../metadata/source";
+import { KOAMiddleware, KOA, KOARouter, KOAContext } from "../metadata/source";
 import { InjectScope } from "../metadata/injectable";
+import { Context } from "../controller";
 
 export class BonbonsServer implements IServer {
 
@@ -50,8 +51,8 @@ export class BonbonsServer implements IServer {
     return this;
   }
 
-  public controller<T extends IController>(ctlr: T): IServer {
-    if (!ctlr || !ctlr.prototype.getConfig) {
+  public controller<T extends IController>(ctlr: any): IServer {
+    if (!ctlr || !(<T>ctlr).prototype.getConfig) {
       throw invalidParam("Controller to be add is invalid. You can only add the controller been decorated by @Controller(...).", { className: ctlr && ctlr.name });
     }
     this._ctlrs.push(ctlr);
@@ -88,8 +89,79 @@ export class BonbonsServer implements IServer {
   }
 
   public start(): void {
-    throw new Error("Method not implemented.");
+    const mainRouter = this.useRouters();
+    this._app
+      .use(mainRouter.routes())
+      .use(mainRouter.allowedMethods())
+      .use(async (ctx) => {
+        ctx.body = "hello koa2";
+      })
+      .listen(3000);
   }
 
 
+  private useRouters() {
+    const mainRouter = new KOARouter();
+    this._ctlrs.forEach(controllerClass => {
+      const ct = new controllerClass();
+      const data = <IBonbonsControllerMetadata>(ct.getConfig && ct.getConfig());
+      const thisRouter = new KOARouter();
+      Object.keys(data.router.routes).forEach(methodName => {
+        const item = data.router.routes[methodName];
+        item.allowMethods.forEach(eachMethod => {
+          if (!item.path) return;
+          const middlewares = [];
+          this._decideFinalStep(item, middlewares, controllerClass, methodName);
+          selectFuncMethod(thisRouter, eachMethod)(item.path, ...middlewares);
+        });
+      });
+      mainRouter.use(data.router.prefix as string, thisRouter.routes(), thisRouter.allowedMethods());
+    });
+    return mainRouter;
+  }
+
+  private _parseFuncParams(constructor: any, ctx: KOAContext, route: IRoute) {
+    const querys = (route.funcParams || []).map(ele => {
+      const { type, isQuery } = ele;
+      if (isQuery) {
+        return !type ? ctx.query[ele.key] : type(ctx.query[ele.key]);
+      } else {
+        return !type ? ctx.params[ele.key] : type(ctx.params[ele.key]);
+      }
+    });
+    // if (route.form && route.form.index >= 0) {
+    //     // when use form decorator for params, try to static-typed and inject to function params list.
+    //     const staticType = (route.funcParams || [])[route.form.index];
+    //     const resolver = this.staticResolver;
+    //     querys[route.form.index] = !!(resolver && staticType && staticType.type) ?
+    //         resolver.FromObject(req.body, staticType.type) :
+    //         req.body;
+    // }
+    return querys;
+  }
+
+  private _decideFinalStep(route: IRoute, middlewares: KOAMiddleware[], constructor: any, methodName: string) {
+    middlewares.push((ctx) => {
+      const c = new constructor(...this._di.resolveDeps(constructor));
+      c._ctx = new Context(ctx);
+      const result: any = constructor.prototype[methodName].bind(c)(...this._parseFuncParams(constructor, ctx, route));
+      ctx.body = result || "EOF";
+    });
+  }
+
+}
+
+function selectFuncMethod(router: KOARouter, method: string) {
+  let invoke: (...args: any[]) => void;
+  switch (method) {
+    case "GET":
+    case "POST":
+    case "PUT":
+    case "DELETE":
+    case "PATCH":
+    case "OPTIONS":
+    case "HEAD": invoke = (...args: any[]) => router[method.toLowerCase()](...args); break;
+    default: throw invalidParam(`invalid REST method registeration : the method [${method}] is not allowed.`);
+  }
+  return invoke;
 }
