@@ -1,5 +1,5 @@
 import { default as Koa } from "koa";
-import { IBonbonsServer } from "../metadata/core";
+import { IBonbonsServer as IServer } from "../metadata/core";
 import { IController } from "../metadata/controller";
 import { DIContainer, CONFIG_COLLECTION, ConfigCollection, DI_CONTAINER } from "../di";
 import {
@@ -10,7 +10,7 @@ import {
 } from "../metadata/di";
 import { invalidOperation } from "../utils";
 
-export class BonbonsServer implements IBonbonsServer {
+export class BonbonsServer implements IServer {
 
   public static Create() { return new BonbonsServer(); }
 
@@ -28,9 +28,9 @@ export class BonbonsServer implements IBonbonsServer {
     this.option(DI_CONTAINER, this._di);
   }
 
-  public option<T>(entry: Entry<T>): IBonbonsServer;
-  public option<T>(token: Token<T>, value: T): IBonbonsServer;
-  public option(...args: any[]): IBonbonsServer {
+  public option<T>(entry: Entry<T>): IServer;
+  public option<T>(token: Token<T>, value: T): IServer;
+  public option(...args: any[]): IServer {
     const [e1, e2] = args;
     if (!e1) throw invalidOperation("DI token or entry is empty, you shouldn't call BonbonsServer.use<T>(...) without any param.");
     if (!e2 || args.length === 2) {
@@ -42,28 +42,28 @@ export class BonbonsServer implements IBonbonsServer {
     return this;
   }
 
-  public controller<T extends IController>(ctlr: T): IBonbonsServer {
+  public controller<T extends IController>(ctlr: T): IServer {
     this._ctlrs.push(ctlr);
     return this;
   }
 
-  public scope(srv: any): IBonbonsServer;
-  public scope(token: any, srv: any): IBonbonsServer;
-  public scope(...args: any[]): IBonbonsServer {
+  public scope(srv: any): IServer;
+  public scope(token: any, srv: any): IServer;
+  public scope(...args: any[]): IServer {
     throw new Error("Method not implemented.");
   }
 
-  public singleton(srv: any): IBonbonsServer;
-  public singleton(token: any, srv: any): IBonbonsServer;
-  public singleton(...args: any[]): IBonbonsServer {
+  public singleton(srv: any): IServer;
+  public singleton(token: any, srv: any): IServer;
+  public singleton(...args: any[]): IServer {
     throw new Error("Method not implemented.");
   }
 
-  public host(host?: string): IBonbonsServer {
+  public host(host?: string): IServer {
     throw new Error("Method not implemented.");
   }
 
-  public port(port?: number): IBonbonsServer {
+  public port(port?: number): IServer {
     throw new Error("Method not implemented.");
   }
 
