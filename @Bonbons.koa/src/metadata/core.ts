@@ -1,12 +1,13 @@
 import { IBonbonsController, IController } from "./controller";
 import { BonbonsToken, BonbonsEntry } from "./di";
 import { KOAMiddleware } from "./source";
+import { IConstructor } from "./base";
 
 export interface IBonbonsServer {
   use(middleware: KOAMiddleware): IBonbonsServer;
   option<T>(entry: BonbonsEntry<T>): IBonbonsServer;
   option<T>(token: BonbonsToken<T>, value: T): IBonbonsServer;
-  controller<T extends IController>(ctlr: T): IBonbonsServer;
+  controller<T extends IConstructor<any>>(ctlr: T): IBonbonsServer;
   scope(srv: any): IBonbonsServer;
   scope(token: any, srv: any): IBonbonsServer;
   singleton(srv: any): IBonbonsServer;

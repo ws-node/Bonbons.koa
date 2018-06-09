@@ -15,6 +15,7 @@ export function Controller(config?: string | IControllerConfig) {
   return function <T extends IController>(target: any) {
     const prototype: IBonbonsController = target.prototype;
     prototype.getConfig = () => Reflection.GetControllerMetadata(prototype);
+    prototype.__valid = true;
     const reflect = Reflection.GetControllerMetadata(prototype);
     Reflection.SetControllerMetadata(prototype, registerCompelete(registerPrefix(reflect, config)));
   };

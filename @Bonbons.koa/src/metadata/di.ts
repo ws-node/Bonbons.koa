@@ -23,6 +23,8 @@ export interface BonbonsSetGetCollection<K = any, V = any> extends BonbonsGetCol
 }
 
 export interface BonbonsConfigCollection<M = {}> extends BonbonsSetGetCollection<BonbonsToken<any>, M> {
+  set<T>(token: BonbonsToken<T>, entry: T): void;
+  get<T>(token: BonbonsToken<T>): T;
   toArray(): BonbonsEntry<any>[];
 }
 
@@ -30,7 +32,8 @@ export interface BonbonsDIEntry {
   getInstance(): any;
 }
 
-export interface BonbonsDIContainer<T extends BonbonsDIEntry = BonbonsDIEntry> extends BonbonsGetCollection<IInjectable, T> {
+export interface BonbonsDIContainer<T extends BonbonsDIEntry = BonbonsDIEntry> {
+  get<T>(token: IInjectable): T;
   register(selector: any, value: any, scope: InjectScope);
   resolveDeps(value: any): any[];
   complete(): void;

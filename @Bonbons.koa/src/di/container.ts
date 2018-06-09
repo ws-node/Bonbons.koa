@@ -1,7 +1,7 @@
 import { BonbonsDIContainer, BonbonsDIEntry } from "../metadata/di";
-import { InjectScope, IInjectable } from "../metadata/injectable";
+import { InjectScope, IInjectable, IBonbonsInjectable } from "../metadata/injectable";
 import { DependencyQueue } from "./dependency";
-import { invalidOperation } from "../utils";
+import { invalidOperation, invalidParam } from "../utils";
 import { getDependencies } from "./reflect";
 
 class DIEntry implements BonbonsDIEntry {
@@ -19,10 +19,12 @@ export class DIContainer implements BonbonsDIContainer<DIEntry> {
   protected _pool = new Map<IInjectable, DIEntry>();
 
   public get<T>(token: IInjectable): T {
-    return this._pool.get(token) as any;
+    const entry = this._pool.get(token);
+    return entry && entry.getInstance();
   }
 
   public register(selector: any, value: any, scope: InjectScope) {
+    if (!value || !(<IBonbonsInjectable>value.prototype).__valid) throw serviceError(value);
     this.deps_queue.addNode(selector, value, getDependencies(value), scope);
   }
 
@@ -42,6 +44,10 @@ export class DIContainer implements BonbonsDIContainer<DIEntry> {
     });
   }
 
+}
+
+function serviceError(selector: any) {
+  return invalidParam("Service to be add is invalid. You can only add the service been decorated by @Injectable(...).", { className: selector && selector.name });
 }
 
 function registerError(selector: any) {

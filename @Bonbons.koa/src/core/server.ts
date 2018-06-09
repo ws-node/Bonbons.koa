@@ -6,18 +6,26 @@ import {
   IBonbonsControllerMetadata as ControllerMetadata,
   IBonbonsMethodResult as SyncResult,
 } from "../metadata/controller";
-import { DIContainer, CONFIG_COLLECTION, ConfigCollection, DI_CONTAINER } from "../di";
+import {
+  DIContainer,
+  CONFIG_COLLECTION,
+  ConfigCollection,
+  DI_CONTAINER,
+  JSON_RESULT_OPTIONS,
+  STATIC_TYPED_RESOLVER,
+  ERROR_PAGE_TEMPLATE
+} from "../di";
 import {
   BonbonsEntry as Entry,
   BonbonsToken as Token,
   BonbonsConfigCollection as IConfigs,
   BonbonsDIContainer as DIs
 } from "../metadata/di";
-import { invalidOperation, invalidParam, TypeCheck } from "../utils";
+import { invalidOperation, invalidParam, TypeCheck, TypedSerializer } from "../utils";
 import { KOAMiddleware, KOA, KOARouter, KOAContext } from "../metadata/source";
 import { InjectScope } from "../metadata/injectable";
 import { Context } from "../controller";
-import { runInContext } from "vm";
+import { JsonResultOptions, ErrorPageTemplate } from "../metadata/base";
 
 export class BonbonsServer implements IServer {
 
@@ -35,6 +43,9 @@ export class BonbonsServer implements IServer {
   private _init() {
     this.option(CONFIG_COLLECTION, this._configs);
     this.option(DI_CONTAINER, this._di);
+    this.option(STATIC_TYPED_RESOLVER, TypedSerializer);
+    this.option(JSON_RESULT_OPTIONS, defaultJsonResultOptions());
+    this.option(ERROR_PAGE_TEMPLATE, defaultErrorPageTemplate());
   }
 
   public use(middleware: KOAMiddleware): IServer {
@@ -50,18 +61,16 @@ export class BonbonsServer implements IServer {
       throw invalidOperation("DI token or entry is empty, you shouldn't call BonbonsServer.use<T>(...) without any param.");
     }
     if (!e2 || args.length === 2) {
-      this._configs.set(e1, e2);
+      this._configs.set(e1, optionAssign(this._configs, e1, e2));
     } else {
       const { token, value } = <Entry<any>>e1;
-      this._configs.set(token, value);
+      this._configs.set(token, optionAssign(this._configs, token, value));
     }
     return this;
   }
 
   public controller<T extends IController>(ctlr: any): IServer {
-    if (!ctlr || !(<T>ctlr).prototype.getConfig) {
-      throw invalidParam("Controller to be add is invalid. You can only add the controller been decorated by @Controller(...).", { className: ctlr && ctlr.name });
-    }
+    if (!ctlr || !(<T>ctlr).prototype.__valid) throw controllerError(ctlr);
     this._ctlrs.push(ctlr);
     return this;
   }
@@ -96,6 +105,7 @@ export class BonbonsServer implements IServer {
   }
 
   public start(): void {
+    this._di.complete();
     const mainRouter = this._useRouters();
     this._app
       .use(mainRouter.routes())
@@ -104,6 +114,7 @@ export class BonbonsServer implements IServer {
         ctx.body = "hello koa2";
       })
       .listen(3000);
+    console.log(JSON.stringify(this._configs.get(JSON_RESULT_OPTIONS)));
   }
 
 
@@ -150,7 +161,9 @@ export class BonbonsServer implements IServer {
 
   private _decideFinalStep(route: IRoute, middlewares: KOAMiddleware[], constructor: any, methodName: string) {
     middlewares.push((ctx) => {
-      const c = new constructor(...this._di.resolveDeps(constructor));
+      const list = this._di.resolveDeps(constructor);
+      console.log(list);
+      const c = new constructor(...list);
       c._ctx = new Context(ctx);
       const result: IResult = constructor.prototype[methodName].bind(c)(...this._parseFuncParams(constructor, ctx, route));
       resolveResult(ctx, result, this._configs);
@@ -159,12 +172,22 @@ export class BonbonsServer implements IServer {
 
 }
 
+function optionAssign(configs: IConfigs, token: any, newValue: any) {
+  return TypeCheck.isFromCustomClass(newValue) ?
+    newValue :
+    Object.assign(configs.get(token) || {}, newValue);
+}
+
+function controllerError(ctlr: any) {
+  return invalidParam("Controller to be add is invalid. You can only add the controller been decorated by @Controller(...).", { className: ctlr && ctlr.name });
+}
+
 function resolveResult(ctx: KOAContext, result: IResult, configs: IConfigs, isSync?: boolean) {
   const isAsync = isSync === undefined ? TypeCheck.isFromCustomClass(result || {}, Promise) : !isSync;
   if (isAsync) {
     (<Promise<SyncResult>>result)
       .then(r => resolveResult(ctx, r, configs, true))
-      .catch((error: Error) => ctx.body = showErrorHTML(error));
+      .catch((error: Error) => ctx.body = configs.get(ERROR_PAGE_TEMPLATE).render(error));
   } else {
     if (!result) { ctx.body = ""; return; }
     if (typeof result === "string") { ctx.body = result; return; }
@@ -187,8 +210,9 @@ function selectFuncMethod(router: KOARouter, method: string) {
   return invoke;
 }
 
-function showErrorHTML(error: Error) {
-  return !error ? "unhandled error." : `
+function defaultErrorPageTemplate(): ErrorPageTemplate {
+  return ({
+    render: (error) => !error ? "unhandled error." : `
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -199,5 +223,9 @@ function showErrorHTML(error: Error) {
   <pre>${error.stack || ""}</pre>
   </body>
   </html>
-  `;
+  `});
+}
+
+function defaultJsonResultOptions(): JsonResultOptions {
+  return { indentation: true, staticType: false };
 }

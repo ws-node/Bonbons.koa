@@ -4,10 +4,13 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "camelcase": "^5.0.0",
+    "cerialize": "^0.1.18",
+    "decamelize": "^2.0.0",
     "koa": "^2.5.1",
+    "koa-router": "^7.4.0",
     "reflect-metadata": "^0.1.12",
-    "uuid": "^3.2.1",
-    "koa-router": "^7.4.0"
+    "uuid": "^3.2.1"
   },
   "devDependencies": {
     "@types/koa-router": "^7.0.28",

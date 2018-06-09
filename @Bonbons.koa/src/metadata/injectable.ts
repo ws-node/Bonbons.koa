@@ -6,7 +6,7 @@ export enum InjectScope {
 }
 
 export interface IBonbonsInjectable {
-
+  __valid?: boolean;
 }
 
 export type IInjectable = IConstructor<IBonbonsInjectable>;

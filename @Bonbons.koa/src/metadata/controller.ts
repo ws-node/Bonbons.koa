@@ -34,6 +34,7 @@ export interface IBonbonsControllerMetadata {
 }
 
 export interface IBonbonsController {
+  __valid?: boolean;
   getConfig?(): IBonbonsControllerMetadata;
 }
 
