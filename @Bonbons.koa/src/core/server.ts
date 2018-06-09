@@ -23,7 +23,7 @@ import {
   BonbonsDIContainer as DIs
 } from "../metadata/di";
 import { invalidOperation, invalidParam, TypeCheck, TypedSerializer } from "../utils";
-import { KOAMiddleware, KOA, KOAContext, KOARouter, KOARouterType } from "../metadata/source";
+import { KOAMiddleware, KOA, KOAContext, KOARouter } from "../metadata/source";
 import { InjectScope } from "../metadata/injectable";
 import { Context } from "../controller";
 import { JsonResultOptions, ErrorPageTemplate, StringResultOptions } from "../metadata/base";
@@ -170,7 +170,7 @@ export class BonbonsServer implements IServer {
     });
   }
 
-  private _selectFuncMethod(router: KOARouterType, method: string) {
+  private _selectFuncMethod(router: KOARouter, method: string) {
     let invoke: (...args: any[]) => void;
     switch (method) {
       case "GET":

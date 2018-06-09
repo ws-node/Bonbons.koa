@@ -1,1 +1,0 @@
-{"version":3,"file":"injectable.js","sourceRoot":"","sources":["../../../src/decorators/injectable.ts"],"names":[],"mappings":"AAAA,OAAO,kBAAkB,CAAC;AAI1B,MAAM,qBAAqB,MAAY;IACrC,OAAO,UAAa,MAAuB;QACzC,MAAM,SAAS,GAAuB,MAAM,CAAC,SAAS,CAAC;QACvD,SAAS,CAAC,OAAO,GAAG,IAAI,CAAC;IAC3B,CAAC,CAAC;AACJ,CAAC"}
