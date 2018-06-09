@@ -15,7 +15,8 @@ The core features are under development. Currently, the dependency injection sys
 
 ## Installation
 ```powershell
-npm install bonbons.koa --save
+# npm install bonbons.koa --save
+# still not support in npm :)
 ```
 
 ## How it works?
