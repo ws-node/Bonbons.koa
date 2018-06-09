@@ -25,7 +25,7 @@ export class JsonResult implements IBonbonsMethodResult {
       const resolver = this.options.resolver;
       json = recursiveResolver(this.json, resolver, staticResolver);
     }
-    return JSON.stringify(json, null, this.options.indentation ? "\t" : 0);
+    return JSON.stringify(json, null, this.options.indentation ? "  " : 0);
   }
 
 }

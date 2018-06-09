@@ -8,7 +8,7 @@ import { IConstructor, IStaticTypedResolver } from "../metadata/base";
 export class TypedSerializerCreator implements IStaticTypedResolver {
 
   public ToJSON(obj: any, format = false): string {
-    return JSON.stringify(Serialize(obj), null, format ? "\t" : 0);
+    return JSON.stringify(Serialize(obj), null, format ? "  " : 0);
   }
 
   // tslint:disable-next-line:ban-types
