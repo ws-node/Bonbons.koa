@@ -14,15 +14,7 @@ export interface BonbonsTokenGenerator {
   <T>(key: string): BonbonsToken<T>;
 }
 
-export interface BonbonsGetCollection<K = any, V = any> {
-  get<T extends V>(token: K): T;
-}
-
-export interface BonbonsSetGetCollection<K = any, V = any> extends BonbonsGetCollection<K, V> {
-  set<T extends V>(token: K, entry: T): void;
-}
-
-export interface BonbonsConfigCollection<M = {}> extends BonbonsSetGetCollection<BonbonsToken<any>, M> {
+export interface BonbonsConfigCollection {
   set<T>(token: BonbonsToken<T>, entry: T): void;
   get<T>(token: BonbonsToken<T>): T;
   toArray(): BonbonsEntry<any>[];
