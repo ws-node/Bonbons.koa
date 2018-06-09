@@ -30,17 +30,14 @@ export class JsonResult implements SyncResult {
 
 }
 
-export class JsonResultResolvers {
-
-  public static decamelize(key: string): string {
+export const JsonResultResolvers = {
+  decamelize(key: string): string {
     return Formater.DeCamelCase(key, "_");
-  }
-
-  public static camel(key: string): string {
+  },
+  camel(key: string): string {
     return Formater.ToCamelCase(key);
   }
-
-}
+};
 
 function recursiveResolver(target: any, resolver: JsonResultResolver, staticRv?: IStaticTypedResolver) {
   let payload = {};

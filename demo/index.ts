@@ -1,4 +1,4 @@
-import { app, createToken, BonbonsServer, Controller, Method, Route, BaseController, Injectable, JsonResult, JSON_RESULT_OPTIONS, JsonResultResolvers } from "@Bonbons";
+import { createToken, Bonbons, Controller, Method, Route, BaseController, Injectable, JsonResult, JSON_RESULT_OPTIONS, JsonResultResolvers } from "@Bonbons";
 
 const token = createToken<IA>("func-token");
 
@@ -9,7 +9,7 @@ interface IA {
 
 const value = { a: "sss", b: 123, c: true };
 
-const server = new BonbonsServer();
+const server = Bonbons.Create();
 
 @Injectable()
 class TestService {
