@@ -1,4 +1,5 @@
 import { IConstructor } from "./base";
+import { BonbonsConfigCollection } from "./di";
 
 export type AllowMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "OPTIONS" | "HEAD";
 
@@ -38,3 +39,10 @@ export interface IBonbonsController {
 
 export type IController = IConstructor<IBonbonsController>;
 
+export interface IBonbonsMethodResult {
+  toString(configs: BonbonsConfigCollection): string;
+}
+
+export type Async<T> = Promise<T>;
+
+export type UnionBonbonsResult = IBonbonsMethodResult | Async<IBonbonsMethodResult> | string;

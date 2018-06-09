@@ -1,5 +1,11 @@
 import { IBonbonsServer as IServer } from "../metadata/core";
-import { IController, IBonbonsControllerMetadata, IRoute } from "../metadata/controller";
+import {
+  IController,
+  IRoute,
+  UnionBonbonsResult as IResult,
+  IBonbonsControllerMetadata as ControllerMetadata,
+  IBonbonsMethodResult as SyncResult,
+} from "../metadata/controller";
 import { DIContainer, CONFIG_COLLECTION, ConfigCollection, DI_CONTAINER } from "../di";
 import {
   BonbonsEntry as Entry,
@@ -7,10 +13,11 @@ import {
   BonbonsConfigCollection as IConfigs,
   BonbonsDIContainer as DIs
 } from "../metadata/di";
-import { invalidOperation, invalidParam } from "../utils";
+import { invalidOperation, invalidParam, TypeCheck } from "../utils";
 import { KOAMiddleware, KOA, KOARouter, KOAContext } from "../metadata/source";
 import { InjectScope } from "../metadata/injectable";
 import { Context } from "../controller";
+import { runInContext } from "vm";
 
 export class BonbonsServer implements IServer {
 
@@ -89,7 +96,7 @@ export class BonbonsServer implements IServer {
   }
 
   public start(): void {
-    const mainRouter = this.useRouters();
+    const mainRouter = this._useRouters();
     this._app
       .use(mainRouter.routes())
       .use(mainRouter.allowedMethods())
@@ -100,22 +107,23 @@ export class BonbonsServer implements IServer {
   }
 
 
-  private useRouters() {
+  private _useRouters() {
     const mainRouter = new KOARouter();
     this._ctlrs.forEach(controllerClass => {
       const ct = new controllerClass();
-      const data = <IBonbonsControllerMetadata>(ct.getConfig && ct.getConfig());
+      const { router } = <ControllerMetadata>(ct.getConfig && ct.getConfig());
       const thisRouter = new KOARouter();
-      Object.keys(data.router.routes).forEach(methodName => {
-        const item = data.router.routes[methodName];
-        item.allowMethods.forEach(eachMethod => {
-          if (!item.path) return;
+      Object.keys(router.routes).forEach(methodName => {
+        const item = router.routes[methodName];
+        const { path, allowMethods } = item;
+        allowMethods.forEach(eachMethod => {
+          if (!path) return;
           const middlewares = [];
           this._decideFinalStep(item, middlewares, controllerClass, methodName);
-          selectFuncMethod(thisRouter, eachMethod)(item.path, ...middlewares);
+          selectFuncMethod(thisRouter, eachMethod)(path, ...middlewares);
         });
       });
-      mainRouter.use(data.router.prefix as string, thisRouter.routes(), thisRouter.allowedMethods());
+      mainRouter.use(router.prefix as string, thisRouter.routes(), thisRouter.allowedMethods());
     });
     return mainRouter;
   }
@@ -144,11 +152,24 @@ export class BonbonsServer implements IServer {
     middlewares.push((ctx) => {
       const c = new constructor(...this._di.resolveDeps(constructor));
       c._ctx = new Context(ctx);
-      const result: any = constructor.prototype[methodName].bind(c)(...this._parseFuncParams(constructor, ctx, route));
-      ctx.body = result || "EOF";
+      const result: IResult = constructor.prototype[methodName].bind(c)(...this._parseFuncParams(constructor, ctx, route));
+      resolveResult(ctx, result, this._configs);
     });
   }
 
+}
+
+function resolveResult(ctx: KOAContext, result: IResult, configs: IConfigs, isSync?: boolean) {
+  const isAsync = isSync === undefined ? TypeCheck.isFromCustomClass(result || {}, Promise) : !isSync;
+  if (isAsync) {
+    (<Promise<SyncResult>>result)
+      .then(r => resolveResult(ctx, r, configs, true))
+      .catch((error: Error) => ctx.body = showErrorHTML(error));
+  } else {
+    if (!result) { ctx.body = ""; return; }
+    if (typeof result === "string") { ctx.body = result; return; }
+    ctx.body = (<SyncResult>result).toString(configs);
+  }
 }
 
 function selectFuncMethod(router: KOARouter, method: string) {
@@ -164,4 +185,19 @@ function selectFuncMethod(router: KOARouter, method: string) {
     default: throw invalidParam(`invalid REST method registeration : the method [${method}] is not allowed.`);
   }
   return invoke;
+}
+
+function showErrorHTML(error: Error) {
+  return !error ? "unhandled error." : `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <title>Error</title>
+  </head>
+  <body>
+  <pre>${error.stack || ""}</pre>
+  </body>
+  </html>
+  `;
 }

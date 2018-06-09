@@ -18,7 +18,7 @@ class TestController extends BaseController {
 
   @Method("GET")
   @Route("/index/:abc/:def?{id}&{name}&{fuck}")
-  index(abc: string, def: string, id: number, name: string) {
+  index(abc: string, def: string, id: number, name: string): string {
     console.log(abc);
     console.log(def);
     console.log(typeof abc);
@@ -28,6 +28,7 @@ class TestController extends BaseController {
     console.log(name);
     console.log(typeof id);
     console.log(typeof name);
+    return this.context.request.querystring;
   }
 
 }
