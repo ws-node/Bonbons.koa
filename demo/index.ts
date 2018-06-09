@@ -1,4 +1,4 @@
-import { app, createToken, BonbonsServer, Controller, DIContainer } from "@Bonbons";
+import { app, createToken, BonbonsServer, Controller } from "@Bonbons";
 
 const token = createToken<IA>("func-token");
 
@@ -17,12 +17,6 @@ class TestController {
 }
 
 server.controller(TestController).option(token, value);
-
-console.log(server);
-
-console.log(server["_di"].get(token))
-
-console.log(new TestController()["getConfig"]());
 
 app.use(async (ctx) => {
   ctx.body = "hello koa2";
