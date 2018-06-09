@@ -5,7 +5,9 @@ branches:
   only:
     - master
 before_script:  
-  - cd demo
+  - cd @Bonbons.koa
+  - npm install
+  - cd ../demo
   - npm install
 script:
   - npm start
