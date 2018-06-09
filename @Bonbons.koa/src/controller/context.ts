@@ -1,9 +1,9 @@
-import { KOAContext } from "../metadata/source";
+import { KOAContext, KOARequest, KOAResponse } from "../metadata/source";
 
 export class Context {
 
-  public get request() { return this.source.request; }
-  public get response() { return this.source.response; }
+  public get request(): KOARequest { return this.source.request; }
+  public get response(): KOAResponse { return this.source.response; }
 
   constructor(private source: KOAContext) { }
 
