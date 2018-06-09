@@ -1,10 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createToken = (key) => ({ key: Symbol(`BONBONS-KOA2-TOKEN:${key}`) });
-exports.CONFIG_COLLECTION = exports.createToken("CONFIG_COLLECTION");
-exports.DI_CONTAINER = exports.createToken("DI_CONTAINER");
-exports.STATIC_TYPED_RESOLVER = exports.createToken("STATIC_TYPED_RESOLVER");
-exports.JSON_RESULT_OPTIONS = exports.createToken("JSON_RESULT_OPTIONS");
-exports.STRING_RESULT_OPTIONS = exports.createToken("STRING_RESULT_OPTIONS");
-exports.ERROR_PAGE_TEMPLATE = exports.createToken("ERROR_PAGE_TEMPLATE");
+export const createToken = (key) => ({ key: Symbol(`BONBONS-KOA2-TOKEN:${key}`) });
+export const CONFIG_COLLECTION = createToken("CONFIG_COLLECTION");
+export const DI_CONTAINER = createToken("DI_CONTAINER");
+export const STATIC_TYPED_RESOLVER = createToken("STATIC_TYPED_RESOLVER");
+export const JSON_RESULT_OPTIONS = createToken("JSON_RESULT_OPTIONS");
+export const STRING_RESULT_OPTIONS = createToken("STRING_RESULT_OPTIONS");
+export const ERROR_PAGE_TEMPLATE = createToken("ERROR_PAGE_TEMPLATE");
 //# sourceMappingURL=tokens.js.map

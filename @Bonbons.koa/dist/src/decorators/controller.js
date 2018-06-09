@@ -1,16 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reflect_1 = require("../di/reflect");
-function Controller(config) {
+import { Reflection } from "../di/reflect";
+export function Controller(config) {
     return function (target) {
         const prototype = target.prototype;
-        prototype.getConfig = () => reflect_1.Reflection.GetControllerMetadata(prototype);
+        prototype.getConfig = () => Reflection.GetControllerMetadata(prototype);
         prototype.__valid = true;
-        const reflect = reflect_1.Reflection.GetControllerMetadata(prototype);
-        reflect_1.Reflection.SetControllerMetadata(prototype, registerCompelete(registerPrefix(reflect, config)));
+        const reflect = Reflection.GetControllerMetadata(prototype);
+        Reflection.SetControllerMetadata(prototype, registerCompelete(registerPrefix(reflect, config)));
     };
 }
-exports.Controller = Controller;
 /**
  * Check and edit absolute route path, merge middlewares and all work done.
  * @param ctrl controller prototype

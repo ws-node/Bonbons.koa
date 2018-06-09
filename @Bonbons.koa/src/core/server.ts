@@ -23,7 +23,7 @@ import {
   BonbonsDIContainer as DIs
 } from "../metadata/di";
 import { invalidOperation, invalidParam, TypeCheck, TypedSerializer } from "../utils";
-import { KOAMiddleware, KOA, KOARouter, KOAContext } from "../metadata/source";
+import { KOAMiddleware, KOA, KOAContext, KOARouter, KOARouterType } from "../metadata/source";
 import { InjectScope } from "../metadata/injectable";
 import { Context } from "../controller";
 import { JsonResultOptions, ErrorPageTemplate, StringResultOptions } from "../metadata/base";
@@ -132,7 +132,7 @@ export class BonbonsServer implements IServer {
           if (!path) return;
           const middlewares = [];
           this._decideFinalStep(item, middlewares, controllerClass, methodName);
-          selectFuncMethod(thisRouter, eachMethod)(path, ...middlewares);
+          this._selectFuncMethod(thisRouter, eachMethod)(path, ...middlewares);
         });
       });
       mainRouter.use(router.prefix as string, thisRouter.routes(), thisRouter.allowedMethods());
@@ -170,6 +170,21 @@ export class BonbonsServer implements IServer {
     });
   }
 
+  private _selectFuncMethod(router: KOARouterType, method: string) {
+    let invoke: (...args: any[]) => void;
+    switch (method) {
+      case "GET":
+      case "POST":
+      case "PUT":
+      case "DELETE":
+      case "PATCH":
+      case "OPTIONS":
+      case "HEAD": invoke = (...args: any[]) => router[method.toLowerCase()](...args); break;
+      default: throw invalidParam(`invalid REST method registeration : the method [${method}] is not allowed.`);
+    }
+    return invoke;
+  }
+
 }
 
 function optionAssign(configs: IConfigs, token: any, newValue: any) {
@@ -193,21 +208,6 @@ function resolveResult(ctx: KOAContext, result: IResult, configs: IConfigs, isSy
     if (typeof result === "string") { ctx.body = result; return; }
     ctx.body = (<SyncResult>result).toString(configs);
   }
-}
-
-function selectFuncMethod(router: KOARouter, method: string) {
-  let invoke: (...args: any[]) => void;
-  switch (method) {
-    case "GET":
-    case "POST":
-    case "PUT":
-    case "DELETE":
-    case "PATCH":
-    case "OPTIONS":
-    case "HEAD": invoke = (...args: any[]) => router[method.toLowerCase()](...args); break;
-    default: throw invalidParam(`invalid REST method registeration : the method [${method}] is not allowed.`);
-  }
-  return invoke;
 }
 
 function defaultErrorPageTemplate(): ErrorPageTemplate {

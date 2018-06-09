@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const server_1 = require("./server");
-exports.Server = server_1.BonbonsServer;
+import { BonbonsServer } from "./server";
 /**
  * Bonbons
  * ------
@@ -9,5 +6,6 @@ exports.Server = server_1.BonbonsServer;
  *
  * Use Bonbons.Create() to create a new app.
  */
-exports.Bonbons = server_1.BonbonsServer;
+export const Bonbons = BonbonsServer;
+export { BonbonsServer as Server };
 //# sourceMappingURL=index.js.map

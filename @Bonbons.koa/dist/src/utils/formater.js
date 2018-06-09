@@ -1,8 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const decamelize = require("decamelize");
-const camel = require("camelcase");
-exports.Formater = {
+import * as decamelize from "decamelize";
+import * as camel from "camelcase";
+export const Formater = {
     ToCamelCase(str) {
         return (camel.default || camel)(str);
     },

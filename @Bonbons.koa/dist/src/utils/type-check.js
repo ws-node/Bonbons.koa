@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 function isObject(target) {
     return Object.prototype.toString.call(target) === "[object Object]";
 }
@@ -15,7 +13,7 @@ function isCustomClassInstance(obj, type) {
         (getPrototypeConstructor(obj) !== Object) :
         (getPrototypeConstructor(obj) === type);
 }
-exports.TypeCheck = {
+export const TypeCheck = {
     IsObject(target) { return isObject(target); },
     IsArray(target) { return isArray(target); },
     getClass(target) { return getPrototypeConstructor(target); },

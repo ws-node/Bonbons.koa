@@ -1,20 +1,18 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const injectable_1 = require("../metadata/injectable");
-const dependency_1 = require("./dependency");
-const utils_1 = require("../utils");
-const reflect_1 = require("./reflect");
+import { InjectScope } from "../metadata/injectable";
+import { DependencyQueue } from "./dependency";
+import { invalidOperation, invalidParam } from "../utils";
+import { getDependencies } from "./reflect";
 class DIEntry {
     constructor(scope) {
         this.scope = scope;
     }
     getInstance() {
-        return this.scope === injectable_1.InjectScope.Singleton ? (this._instance || (this._instance = this._fac())) : this._fac();
+        return this.scope === InjectScope.Singleton ? (this._instance || (this._instance = this._fac())) : this._fac();
     }
 }
-class DIContainer {
+export class DIContainer {
     constructor() {
-        this.deps_queue = new dependency_1.DependencyQueue();
+        this.deps_queue = new DependencyQueue();
         this._pool = new Map();
     }
     get(token) {
@@ -24,10 +22,10 @@ class DIContainer {
     register(selector, value, scope) {
         if (!value || !value.prototype.__valid)
             throw serviceError(value);
-        this.deps_queue.addNode(selector, value, reflect_1.getDependencies(value), scope);
+        this.deps_queue.addNode(selector, value, getDependencies(value), scope);
     }
     resolveDeps(value) {
-        return reflect_1.getDependencies(value).map(dep => this.get(dep));
+        return getDependencies(value).map(dep => this.get(dep));
     }
     complete() {
         const finals = this.deps_queue.sort();
@@ -42,14 +40,13 @@ class DIContainer {
         });
     }
 }
-exports.DIContainer = DIContainer;
 function serviceError(selector) {
-    return utils_1.invalidParam("Service to be add is invalid. You can only add the service been decorated by @Injectable(...).", { className: selector && selector.name });
+    return invalidParam("Service to be add is invalid. You can only add the service been decorated by @Injectable(...).", { className: selector && selector.name });
 }
 function registerError(selector) {
-    return utils_1.invalidOperation(`injectable register error : injectable element with name [${(selector && selector.name) || "unknown name"}] is exist already.`);
+    return invalidOperation(`injectable register error : injectable element with name [${(selector && selector.name) || "unknown name"}] is exist already.`);
 }
 function resolveError(selector) {
-    return utils_1.invalidOperation(`resolve injectable dependencies error : can not resolve dept name [${(selector && selector.name) || "unknown name"}] .`);
+    return invalidOperation(`resolve injectable dependencies error : can not resolve dept name [${(selector && selector.name) || "unknown name"}] .`);
 }
 //# sourceMappingURL=container.js.map

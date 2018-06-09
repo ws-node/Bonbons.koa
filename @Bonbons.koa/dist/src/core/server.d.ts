@@ -26,4 +26,5 @@ export declare class BonbonsServer implements IServer {
     private _useRouters;
     private _parseFuncParams;
     private _decideFinalStep;
+    private _selectFuncMethod;
 }

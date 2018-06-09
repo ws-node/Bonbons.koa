@@ -1,10 +1,5 @@
-"use strict";
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-Object.defineProperty(exports, "__esModule", { value: true });
-__export(require("./base"));
-__export(require("./context"));
-__export(require("./result/json"));
-__export(require("./result/string"));
+export * from "./base";
+export * from "./context";
+export * from "./result/json";
+export * from "./result/string";
 //# sourceMappingURL=index.js.map

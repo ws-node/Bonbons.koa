@@ -1,7 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const koa_1 = require("koa");
-exports.KOA = koa_1.default;
-const koa_router_1 = require("koa-router");
-exports.KOARouter = koa_router_1.default;
+import Koa from "koa";
+import Router from "koa-router";
+const _koa = Koa["default"] && Koa;
+const _roter = Router["default"] && Router;
+export { _koa as KOA, _roter as KOARouter, Koa as KOAType, Router as KOARouterType };
 //# sourceMappingURL=source.js.map

@@ -1,8 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var InjectScope;
+export var InjectScope;
 (function (InjectScope) {
     InjectScope["Singleton"] = "__singleton";
     InjectScope["Scoped"] = "__scoped";
-})(InjectScope = exports.InjectScope || (exports.InjectScope = {}));
+})(InjectScope || (InjectScope = {}));
 //# sourceMappingURL=injectable.js.map

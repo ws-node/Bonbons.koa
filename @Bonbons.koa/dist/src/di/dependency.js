@@ -1,8 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const injectable_1 = require("../metadata/injectable");
-const utils_1 = require("../utils");
-class DependencyQueue {
+import { InjectScope } from "../metadata/injectable";
+import { invalidOperation } from "../utils";
+export class DependencyQueue {
     constructor() {
         this.queue = [];
         this.sections = [];
@@ -14,8 +12,8 @@ class DependencyQueue {
         deps = deps || [];
         const registerValue = realel || el;
         const isConstructor = !!registerValue.prototype;
-        scope = scope || injectable_1.InjectScope.Singleton;
-        this.queue.push({ el, realel: registerValue, deps, scope: isConstructor ? scope : injectable_1.InjectScope.Singleton });
+        scope = scope || InjectScope.Singleton;
+        this.queue.push({ el, realel: registerValue, deps, scope: isConstructor ? scope : InjectScope.Singleton });
     }
     sort() {
         this.sections[0] = this.queue.filter(i => i.deps.length === 0);
@@ -32,7 +30,6 @@ class DependencyQueue {
         this.decideSection(queue.filter(i => !wants.includes(i)), sections, current + 1);
     }
 }
-exports.DependencyQueue = DependencyQueue;
 function resolveUnder(node, sections, checkIndex, sourceQueue) {
     const checkArr = [];
     if (checkIndex < 0)
@@ -48,7 +45,7 @@ function resolveUnder(node, sections, checkIndex, sourceQueue) {
     return isresolved;
 }
 function resolveError(el, depts) {
-    return utils_1.invalidOperation(`Resolve dependency error : the dependency queue is broken caused by [${(el && el.name) || "unknown name"}]. ` +
+    return invalidOperation(`Resolve dependency error : the dependency queue is broken caused by [${(el && el.name) || "unknown name"}]. ` +
         `the depedency list is [${(depts || []).map(i => i.name || "??").join(", ")}]`);
 }
 //# sourceMappingURL=dependency.js.map

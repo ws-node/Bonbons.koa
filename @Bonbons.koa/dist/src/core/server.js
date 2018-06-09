@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -7,28 +6,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-const di_1 = require("../di");
-const utils_1 = require("../utils");
-const source_1 = require("../metadata/source");
-const injectable_1 = require("../metadata/injectable");
-const controller_1 = require("../controller");
-class BonbonsServer {
+import { DIContainer, CONFIG_COLLECTION, ConfigCollection, DI_CONTAINER, JSON_RESULT_OPTIONS, STATIC_TYPED_RESOLVER, ERROR_PAGE_TEMPLATE, STRING_RESULT_OPTIONS } from "../di";
+import { invalidOperation, invalidParam, TypeCheck, TypedSerializer } from "../utils";
+import { KOA, KOARouter } from "../metadata/source";
+import { InjectScope } from "../metadata/injectable";
+import { Context } from "../controller";
+export class BonbonsServer {
     constructor() {
-        this._app = new source_1.KOA();
+        this._app = new KOA();
         this._ctlrs = [];
-        this._di = new di_1.DIContainer();
-        this._configs = new di_1.ConfigCollection();
+        this._di = new DIContainer();
+        this._configs = new ConfigCollection();
         this._init();
     }
     static Create() { return new BonbonsServer(); }
     _init() {
-        this.option(di_1.CONFIG_COLLECTION, this._configs);
-        this.option(di_1.DI_CONTAINER, this._di);
-        this.option(di_1.STATIC_TYPED_RESOLVER, utils_1.TypedSerializer);
-        this.option(di_1.JSON_RESULT_OPTIONS, defaultJsonResultOptions());
-        this.option(di_1.STRING_RESULT_OPTIONS, defaultStringResultOptions());
-        this.option(di_1.ERROR_PAGE_TEMPLATE, defaultErrorPageTemplate());
+        this.option(CONFIG_COLLECTION, this._configs);
+        this.option(DI_CONTAINER, this._di);
+        this.option(STATIC_TYPED_RESOLVER, TypedSerializer);
+        this.option(JSON_RESULT_OPTIONS, defaultJsonResultOptions());
+        this.option(STRING_RESULT_OPTIONS, defaultStringResultOptions());
+        this.option(ERROR_PAGE_TEMPLATE, defaultErrorPageTemplate());
     }
     use(middleware) {
         this._app.use(middleware);
@@ -37,7 +35,7 @@ class BonbonsServer {
     option(...args) {
         const [e1, e2] = args;
         if (!e1) {
-            throw utils_1.invalidOperation("DI token or entry is empty, you shouldn't call BonbonsServer.use<T>(...) without any param.");
+            throw invalidOperation("DI token or entry is empty, you shouldn't call BonbonsServer.use<T>(...) without any param.");
         }
         if (!e2 || args.length === 2) {
             this._configs.set(e1, optionAssign(this._configs, e1, e2));
@@ -57,15 +55,15 @@ class BonbonsServer {
     injectable(provide, classType, type) {
         if (!provide)
             return this;
-        type = type || injectable_1.InjectScope.Singleton;
+        type = type || InjectScope.Singleton;
         this._di.register(provide, classType || provide, type);
         return this;
     }
     scope(...args) {
-        return this.injectable(args[0], args[1], injectable_1.InjectScope.Scoped);
+        return this.injectable(args[0], args[1], InjectScope.Scoped);
     }
     singleton(...args) {
-        return this.injectable(args[0], args[1], injectable_1.InjectScope.Singleton);
+        return this.injectable(args[0], args[1], InjectScope.Singleton);
     }
     host(host) {
         throw new Error("Method not implemented.");
@@ -85,11 +83,11 @@ class BonbonsServer {
             .listen(3000);
     }
     _useRouters() {
-        const mainRouter = new source_1.KOARouter();
+        const mainRouter = new KOARouter();
         this._ctlrs.forEach(controllerClass => {
             const ct = new controllerClass();
             const { router } = (ct.getConfig && ct.getConfig());
-            const thisRouter = new source_1.KOARouter();
+            const thisRouter = new KOARouter();
             Object.keys(router.routes).forEach(methodName => {
                 const item = router.routes[methodName];
                 const { path, allowMethods } = item;
@@ -98,7 +96,7 @@ class BonbonsServer {
                         return;
                     const middlewares = [];
                     this._decideFinalStep(item, middlewares, controllerClass, methodName);
-                    selectFuncMethod(thisRouter, eachMethod)(path, ...middlewares);
+                    this._selectFuncMethod(thisRouter, eachMethod)(path, ...middlewares);
                 });
             });
             mainRouter.use(router.prefix, thisRouter.routes(), thisRouter.allowedMethods());
@@ -129,27 +127,42 @@ class BonbonsServer {
         middlewares.push((ctx) => {
             const list = this._di.resolveDeps(constructor);
             const c = new constructor(...list);
-            c._ctx = new controller_1.Context(ctx);
+            c._ctx = new Context(ctx);
             const result = constructor.prototype[methodName].bind(c)(...this._parseFuncParams(constructor, ctx, route));
             resolveResult(ctx, result, this._configs);
         });
     }
+    _selectFuncMethod(router, method) {
+        let invoke;
+        switch (method) {
+            case "GET":
+            case "POST":
+            case "PUT":
+            case "DELETE":
+            case "PATCH":
+            case "OPTIONS":
+            case "HEAD":
+                invoke = (...args) => router[method.toLowerCase()](...args);
+                break;
+            default: throw invalidParam(`invalid REST method registeration : the method [${method}] is not allowed.`);
+        }
+        return invoke;
+    }
 }
-exports.BonbonsServer = BonbonsServer;
 function optionAssign(configs, token, newValue) {
-    return utils_1.TypeCheck.isFromCustomClass(newValue) ?
+    return TypeCheck.isFromCustomClass(newValue) ?
         newValue :
         Object.assign(configs.get(token) || {}, newValue);
 }
 function controllerError(ctlr) {
-    return utils_1.invalidParam("Controller to be add is invalid. You can only add the controller been decorated by @Controller(...).", { className: ctlr && ctlr.name });
+    return invalidParam("Controller to be add is invalid. You can only add the controller been decorated by @Controller(...).", { className: ctlr && ctlr.name });
 }
 function resolveResult(ctx, result, configs, isSync) {
-    const isAsync = isSync === undefined ? utils_1.TypeCheck.isFromCustomClass(result || {}, Promise) : !isSync;
+    const isAsync = isSync === undefined ? TypeCheck.isFromCustomClass(result || {}, Promise) : !isSync;
     if (isAsync) {
         result
             .then(r => resolveResult(ctx, r, configs, true))
-            .catch((error) => ctx.body = configs.get(di_1.ERROR_PAGE_TEMPLATE).render(error));
+            .catch((error) => ctx.body = configs.get(ERROR_PAGE_TEMPLATE).render(error));
     }
     else {
         if (!result) {
@@ -162,22 +175,6 @@ function resolveResult(ctx, result, configs, isSync) {
         }
         ctx.body = result.toString(configs);
     }
-}
-function selectFuncMethod(router, method) {
-    let invoke;
-    switch (method) {
-        case "GET":
-        case "POST":
-        case "PUT":
-        case "DELETE":
-        case "PATCH":
-        case "OPTIONS":
-        case "HEAD":
-            invoke = (...args) => router[method.toLowerCase()](...args);
-            break;
-        default: throw utils_1.invalidParam(`invalid REST method registeration : the method [${method}] is not allowed.`);
-    }
-    return invoke;
 }
 function defaultErrorPageTemplate() {
     return ({
