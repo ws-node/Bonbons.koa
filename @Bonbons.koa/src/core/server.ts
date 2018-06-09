@@ -9,6 +9,7 @@ import {
 } from "../metadata/di";
 import { invalidOperation, invalidParam } from "../utils";
 import { KOAMiddleware, KOA } from "../metadata/source";
+import { InjectScope } from "../metadata/injectable";
 
 export class BonbonsServer implements IServer {
 
@@ -57,16 +58,25 @@ export class BonbonsServer implements IServer {
     return this;
   }
 
+  private injectable(provide: any, type: InjectScope): IServer;
+  private injectable(provide: any, classType: any, type?: InjectScope): IServer;
+  private injectable(provide: any, classType?: any, type?: InjectScope): IServer {
+    if (!provide) return this;
+    type = type || InjectScope.Singleton;
+    this._di.register(provide, classType || provide, type);
+    return this;
+  }
+
   public scope(srv: any): IServer;
   public scope(token: any, srv: any): IServer;
   public scope(...args: any[]): IServer {
-    throw new Error("Method not implemented.");
+    return this.injectable(args[0], args[1], InjectScope.Scoped);
   }
 
   public singleton(srv: any): IServer;
   public singleton(token: any, srv: any): IServer;
   public singleton(...args: any[]): IServer {
-    throw new Error("Method not implemented.");
+    return this.injectable(args[0], args[1], InjectScope.Singleton);
   }
 
   public host(host?: string): IServer {

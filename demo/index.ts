@@ -22,7 +22,7 @@ class BadController {
 
 server
   .controller(TestController)
-  .controller(BadController)
+  // .controller(BadController)
   .option(token, value);
 
 app.use(async (ctx) => {
