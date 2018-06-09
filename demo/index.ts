@@ -16,7 +16,14 @@ class TestController {
 
 }
 
-server.controller(TestController).option(token, value);
+class BadController {
+
+}
+
+server
+  .controller(TestController)
+  .controller(BadController)
+  .option(token, value);
 
 app.use(async (ctx) => {
   ctx.body = "hello koa2";

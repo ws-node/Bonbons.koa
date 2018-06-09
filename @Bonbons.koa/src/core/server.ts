@@ -1,4 +1,3 @@
-import { default as Koa } from "koa";
 import { IBonbonsServer as IServer } from "../metadata/core";
 import { IController } from "../metadata/controller";
 import { DIContainer, CONFIG_COLLECTION, ConfigCollection, DI_CONTAINER } from "../di";
@@ -8,13 +7,14 @@ import {
   BonbonsConfigCollection as IConfigs,
   BonbonsDIContainer as DIs
 } from "../metadata/di";
-import { invalidOperation } from "../utils";
+import { invalidOperation, invalidParam } from "../utils";
+import { KOAMiddleware, KOA } from "../metadata/source";
 
 export class BonbonsServer implements IServer {
 
   public static Create() { return new BonbonsServer(); }
 
-  private _app = new Koa();
+  private _app = new KOA();
   private _ctlrs: IController[] = [];
   private _di: DIs = new DIContainer();
   private _configs: IConfigs = new ConfigCollection();
@@ -28,11 +28,18 @@ export class BonbonsServer implements IServer {
     this.option(DI_CONTAINER, this._di);
   }
 
+  public use(middleware: KOAMiddleware): IServer {
+    this._app.use(middleware);
+    return this;
+  }
+
   public option<T>(entry: Entry<T>): IServer;
   public option<T>(token: Token<T>, value: T): IServer;
   public option(...args: any[]): IServer {
     const [e1, e2] = args;
-    if (!e1) throw invalidOperation("DI token or entry is empty, you shouldn't call BonbonsServer.use<T>(...) without any param.");
+    if (!e1) {
+      throw invalidOperation("DI token or entry is empty, you shouldn't call BonbonsServer.use<T>(...) without any param.");
+    }
     if (!e2 || args.length === 2) {
       this._configs.set(e1, e2);
     } else {
@@ -43,6 +50,9 @@ export class BonbonsServer implements IServer {
   }
 
   public controller<T extends IController>(ctlr: T): IServer {
+    if (!ctlr || !ctlr.prototype.getConfig) {
+      throw invalidParam("Controller to be add is invalid. You can only add the controller been decorated by @Controller(...).", { className: ctlr && ctlr.name });
+    }
     this._ctlrs.push(ctlr);
     return this;
   }

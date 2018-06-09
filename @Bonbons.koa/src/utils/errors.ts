@@ -9,10 +9,14 @@ export class BonbonsError extends Error {
 
 }
 
-export function ERROR(error?: string) {
-  return new BonbonsError(error);
+export function ERROR(error: string, more?: any) {
+  return new BonbonsError(`${error} \n[ more details ] : ${(JSON.stringify(more)) || "none"}`);
 }
 
-export function invalidOperation(error?: string) {
-  return ERROR(`[ invalid operation ] : ${error}`);
+export function invalidOperation(error: string, more?: any) {
+  return ERROR(`[ INVALID OPERATION ] : ${error}`, more);
+}
+
+export function invalidParam(error: string, more?: any) {
+  return ERROR(`[ INVALID PARAM ] : ${error}`, more);
 }
