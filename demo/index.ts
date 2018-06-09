@@ -16,7 +16,7 @@ class TestController {
 
 }
 
-server.controller(TestController).use(token, value);
+server.controller(TestController).option(token, value);
 
 console.log(server);
 

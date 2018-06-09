@@ -2,7 +2,7 @@ import { BonbonsDIContainer, BonbonsToken, BonbonsTokenGenerator } from "../meta
 
 export class DIContainer implements BonbonsDIContainer {
 
-  private _di = new Map<symbol, { value: any }>();
+  protected _di = new Map<symbol, { value: any }>();
 
   set<T>(token: BonbonsToken<T>, entry: T): void {
     this._di.set(token.key, { value: entry });

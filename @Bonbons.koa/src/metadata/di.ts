@@ -18,5 +18,5 @@ export interface BonbonsDIContainer {
 }
 
 export interface BonbonsConfigCollection extends BonbonsDIContainer {
-  toArray(): any[];
+  toArray(): BonbonsEntry<any>[];
 }
