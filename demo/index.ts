@@ -20,7 +20,7 @@ server.controller(TestController).use(token, value);
 
 console.log(server);
 
-console.log(server["_di"].get(token));
+console.log(server["_di"].get(token))
 
 console.log(new TestController()["getConfig"]());
 

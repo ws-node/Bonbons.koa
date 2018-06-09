@@ -2,6 +2,7 @@ import { IBonbonsServer } from "../metadata/core";
 import { IBonbonsController, IController } from "../metadata/controller";
 import { DIContainer } from "../di";
 import { BonbonsDIEntry, BonbonsDIToken } from "../metadata/di";
+import { invalidOperation } from "../utils";
 
 export class BonbonsServer implements IBonbonsServer {
 
@@ -12,7 +13,7 @@ export class BonbonsServer implements IBonbonsServer {
   use<T>(token: BonbonsDIToken<T>, value: T): IBonbonsServer;
   use(...args: any[]): IBonbonsServer {
     const [e1, e2] = args;
-    if (!e1) throw new Error(`bonbons di config error : token or entry is empty`);
+    if (!e1) throw invalidOperation("DI token or entry is empty, you shouldn't call BonbonsServer.use<T>(...) without any param.");
     if (!e2 || args.length === 2) {
       this._di.set(e1, e2);
     } else {
