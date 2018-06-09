@@ -128,6 +128,7 @@ export class BonbonsServer implements IServer {
       Object.keys(router.routes).forEach(methodName => {
         const item = router.routes[methodName];
         const { path, allowMethods } = item;
+        if (!allowMethods) throw invalidOperation("invalid method, you must set a HTTP method for a route.");
         allowMethods.forEach(eachMethod => {
           if (!path) return;
           const middlewares = [];
