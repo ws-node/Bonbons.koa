@@ -1,18 +1,22 @@
 
-export interface BonbonsDIToken<T> {
+export interface BonbonsToken<T> {
   key: symbol;
 }
 
-export interface BonbonsDIEntry<T> {
-  token: BonbonsDIToken<T>;
+export interface BonbonsEntry<T> {
+  token: BonbonsToken<T>;
   value: T;
 }
 
-export interface BonbonsDITokenGenerator {
-  <T>(key: string): BonbonsDIToken<T>;
+export interface BonbonsTokenGenerator {
+  <T>(key: string): BonbonsToken<T>;
 }
 
 export interface BonbonsDIContainer {
-  set<T>(token: BonbonsDIToken<T>, entry: T): void;
-  get<T>(token: BonbonsDIToken<T>): T;
+  set<T>(token: BonbonsToken<T>, entry: T): void;
+  get<T>(token: BonbonsToken<T>): T;
+}
+
+export interface BonbonsConfigCollection extends BonbonsDIContainer {
+  toArray(): any[];
 }
