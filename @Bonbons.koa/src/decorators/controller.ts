@@ -1,18 +1,21 @@
 import { IController, IBonbonsControllerMetadata, IControllerConfig, IBonbonsController } from "../metadata/controller";
 import { Reflection } from "../di/reflect";
+import { IConstructor } from "../metadata/base";
+
+type ControllerDecorator = <T>(target: IConstructor<T>) => void;
 
 /**
  * Define a controller with config. the config is used for route prefix and other features.
  * @param {string} config prefix string
  */
-export function Controller(config?: string);
+export function Controller(config?: string): ControllerDecorator;
 /**
  * Define a controller with config. the config is used for route prefix and other features.
  * @param {string} config an object contains some editable params
  */
-export function Controller(config?: IControllerConfig);
-export function Controller(config?: string | IControllerConfig) {
-  return function <T extends IController>(target: any) {
+export function Controller(config?: IControllerConfig): ControllerDecorator;
+export function Controller(config?: string | IControllerConfig): ControllerDecorator {
+  return function <T>(target: IConstructor<T>) {
     const prototype: IBonbonsController = target.prototype;
     prototype.getConfig = () => Reflection.GetControllerMetadata(prototype);
     prototype.__valid = true;

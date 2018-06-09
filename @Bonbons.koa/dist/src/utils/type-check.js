@@ -15,12 +15,10 @@ function isCustomClassInstance(obj, type) {
         (getPrototypeConstructor(obj) !== Object) :
         (getPrototypeConstructor(obj) === type);
 }
-class TypeCheckCreator {
-    IsObject(target) { return isObject(target); }
-    IsArray(target) { return isArray(target); }
-    getClass(target) { return getPrototypeConstructor(target); }
+exports.TypeCheck = {
+    IsObject(target) { return isObject(target); },
+    IsArray(target) { return isArray(target); },
+    getClass(target) { return getPrototypeConstructor(target); },
     isFromCustomClass(target, type) { return isCustomClassInstance(target, type); }
-}
-exports.TypeCheckCreator = TypeCheckCreator;
-exports.TypeCheck = new TypeCheckCreator();
+};
 //# sourceMappingURL=type-check.js.map

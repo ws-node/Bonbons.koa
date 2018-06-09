@@ -1,6 +1,5 @@
 export interface IConstructor<T> {
     new (...args: any[]): T;
-    prototype: T;
 }
 export interface IStaticTypedResolver {
     /** Convert static typed instance to JSON text */

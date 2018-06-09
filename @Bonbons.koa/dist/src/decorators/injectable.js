@@ -3,7 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("reflect-metadata");
 function Injectable(config) {
     return function (target) {
-        target.prototype.__valid = true;
+        const prototype = target.prototype;
+        prototype.__valid = true;
     };
 }
 exports.Injectable = Injectable;
