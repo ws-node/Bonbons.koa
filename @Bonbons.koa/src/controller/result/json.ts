@@ -32,11 +32,11 @@ export class JsonResult implements SyncResult {
 
 export class JsonResultResolvers {
 
-  public static decamelize(key: string) {
+  public static decamelize(key: string): string {
     return Formater.DeCamelCase(key, "_");
   }
 
-  public static camel(key: string) {
+  public static camel(key: string): string {
     return Formater.ToCamelCase(key);
   }
 
