@@ -1,5 +1,6 @@
-import { IConstructor } from "./base";
+import { IConstructor, FormType } from "./base";
 import { BonbonsConfigCollection } from "./di";
+import { BaseFormOptions } from "./../metadata/options";
 
 export type AllowMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "OPTIONS" | "HEAD";
 
@@ -15,12 +16,12 @@ export interface IRoute {
   //     merge: boolean;
   // };
   funcParams: Array<{ key: string, type: any, isQuery: boolean }>;
-  // form: {
-  //     parser: FormDcsType;
-  //     index: number;
-  //     options?: any;
-  //     type?: string;
-  // };
+  form: {
+    parser: FormType;
+    index: number;
+    options?: BaseFormOptions;
+    type?: string;
+  };
 }
 
 export interface BonbonsRouterConfig {

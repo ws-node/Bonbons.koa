@@ -1,5 +1,5 @@
 import { Context } from "./context";
-import { JsonResultOptions, StringResultOptions } from "../metadata/base";
+import { JsonResultOptions, StringResultOptions } from "../metadata/options";
 import { JsonResult } from "./result/json";
 import { StringResult } from "./result/string";
 import { Async } from "../metadata/controller";

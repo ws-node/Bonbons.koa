@@ -13,24 +13,11 @@ export interface IStaticTypedResolver {
   FromObject<T>(json: any, type?: IConstructor<T>): T;
 }
 
-export interface JsonResultResolver {
-  (propertyKey: string): string;
-}
-
-export interface JsonResultOptions {
-  /** Whether to enable indentation */
-  indentation?: boolean;
-  /** Handle JSON keys ,return a new key to replace old one for each */
-  resolver?: JsonResultResolver;
-  /** Whether to enable static type processing according to a serialization contract */
-  staticType?: boolean;
-}
-
-export interface StringResultOptions {
-  encoding?: string;
-  decoding?: string;
-}
-
-export interface ErrorPageTemplate {
-  render(error): string;
+export enum FormType {
+  MultipleFormData = "multiple",
+  MultipleFile = "files",
+  ApplicationJson = "json",
+  UrlEncoded = "url",
+  TextPlain = "text",
+  Raw = "raw"
 }

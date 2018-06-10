@@ -1,4 +1,4 @@
-import { JsonResultOptions, StringResultOptions, ErrorPageTemplate } from "../metadata/base";
+import { JsonResultOptions, StringResultOptions, ErrorPageTemplate } from "../metadata/options";
 
 function defaultErrorPageTemplate(): ErrorPageTemplate {
   return ({

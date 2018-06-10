@@ -14,19 +14,26 @@ import {
   JSON_RESULT_OPTIONS,
   STATIC_TYPED_RESOLVER,
   ERROR_PAGE_TEMPLATE,
-  STRING_RESULT_OPTIONS
+  STRING_RESULT_OPTIONS,
+  JSON_FORM_OPTIONS,
+  BODY_PARSE_OPTIONS,
+  TEXT_FORM_OPTIONS,
+  URL_FORM_OPTIONS
 } from "../di";
 import {
   BonbonsEntry as Entry,
   BonbonsToken as Token,
   BonbonsConfigCollection as IConfigs,
-  BonbonsDIContainer as DIs
+  BonbonsDIContainer as DIs,
+  BonbonsToken
 } from "../metadata/di";
 import { invalidOperation, invalidParam, TypeCheck, TypedSerializer } from "../utils";
-import { KOAMiddleware, KOA, KOAContext, KOARouter } from "../metadata/source";
+import { KOAMiddleware, KOA, KOAContext, KOARouter, KOABodyParser } from "../metadata/source";
 import { InjectScope } from "../metadata/injectable";
 import { Context } from "../controller";
 import { DEFAULTS } from "./../options";
+import { FormType } from "./../metadata/base";
+import { BaseFormOptions } from "./../metadata/options";
 
 export class BonbonsServer implements IServer {
 
@@ -49,6 +56,7 @@ export class BonbonsServer implements IServer {
     this.option(JSON_RESULT_OPTIONS, DEFAULTS.jsonOptions);
     this.option(STRING_RESULT_OPTIONS, DEFAULTS.stringOption);
     this.option(ERROR_PAGE_TEMPLATE, DEFAULTS.errorTemplate);
+    this.option(BODY_PARSE_OPTIONS, { enableTypes: ["json", "form"] });
   }
 
   public use(mfac: MiddlewaresFactory): IServer {
@@ -119,7 +127,7 @@ export class BonbonsServer implements IServer {
     this._ctlrs.forEach(controllerClass => {
       const ct = new controllerClass();
       const { router } = <ControllerMetadata>(ct.getConfig && ct.getConfig());
-      const thisRouter = new KOARouter();
+      const thisRouter = new KOARouter({ prefix: router.prefix as string });
       Object.keys(router.routes).forEach(methodName => {
         const item = router.routes[methodName];
         const { path, allowMethods } = item;
@@ -127,19 +135,24 @@ export class BonbonsServer implements IServer {
         allowMethods.forEach(eachMethod => {
           if (!path) return;
           const middlewares = [];
+          this._selectFormParser(item, middlewares);
           this._decideFinalStep(item, middlewares, controllerClass, methodName);
           this._selectFuncMethod(thisRouter, eachMethod)(path, ...middlewares);
         });
       });
-      mainRouter.use(router.prefix as string, thisRouter.routes(), thisRouter.allowedMethods());
+      mainRouter.use(thisRouter.routes()).use(thisRouter.allowedMethods());
     });
     const { routes, allowedMethods } = mainRouter;
-    this.use(routes);
-    this.use(allowedMethods);
+    this.use(routes.bind(mainRouter));
+    this.use(allowedMethods.bind(mainRouter));
   }
 
   private _useMiddlewares() {
     this._mwares.forEach(fac => this._app.use(fac()));
+  }
+
+  private _selectFormParser(route: IRoute, middlewares: any[]) {
+    if (route.form && route.form.parser) resolveFormParser(middlewares, route, this._configs);
   }
 
   private _decideFinalStep(route: IRoute, middlewares: KOAMiddleware[], constructor: any, methodName: string) {
@@ -157,14 +170,15 @@ export class BonbonsServer implements IServer {
       const pack = isQuery ? ctx.query : ctx.params;
       return !type ? pack[key] : type(pack[key]);
     });
-    // if (route.form && route.form.index >= 0) {
-    //     // when use form decorator for params, try to static-typed and inject to function params list.
-    //     const staticType = (route.funcParams || [])[route.form.index];
-    //     const resolver = this.staticResolver;
-    //     querys[route.form.index] = !!(resolver && staticType && staticType.type) ?
-    //         resolver.FromObject(req.body, staticType.type) :
-    //         req.body;
-    // }
+    if (route.form && route.form.index >= 0) {
+      const { index } = route.form;
+      // when use form decorator for params, try to static-typed and inject to function params list.
+      const staticType = (route.funcParams || [])[index];
+      const resolver = this._configs.get(STATIC_TYPED_RESOLVER);
+      querys[index] = !!(resolver && staticType && staticType.type) ?
+        resolver.FromObject(ctx.request.body, staticType.type) :
+        ctx.request.body;
+    }
     return querys;
   }
 
@@ -183,6 +197,34 @@ export class BonbonsServer implements IServer {
     return invoke;
   }
 
+}
+
+function resolveFormParser(middlewares: any[], route: IRoute, configs: IConfigs) {
+  const parser = resolveParser(route.form.parser, configs, route.form.options);
+  if (parser) middlewares.unshift(parser);
+}
+
+function resolveParser(type: FormType, configs: IConfigs, options?: BaseFormOptions) {
+  switch (type) {
+    // case FormType.MultipleFormData:
+    //     return MultiplePartParser().any();
+    case FormType.ApplicationJson:
+      return resolveParserOptions(JSON_FORM_OPTIONS, configs, { type: "json", ...options });
+    case FormType.UrlEncoded:
+      return resolveParserOptions(URL_FORM_OPTIONS, configs, { type: "form", ...options });
+    // case FormType.Raw:
+    //   return RawParser(resolveParserOptions(BODY_RAW_PARSER, configs, options));
+    case FormType.TextPlain:
+      return resolveParserOptions(TEXT_FORM_OPTIONS, configs, { type: "text", ...options });
+    default: return null;
+  }
+}
+
+function resolveParserOptions<T>(key: BonbonsToken<T>, configs: IConfigs, options: BaseFormOptions): KOAMiddleware {
+  (<any>options).enableTypes = [options.type];
+  delete options.type;
+  // console.log(JSON.stringify(Object.assign(configs.get(key) || {}, options)));
+  return KOABodyParser(Object.assign(configs.get(key) || {}, options));
 }
 
 function optionAssign(configs: IConfigs, token: any, newValue: any) {

@@ -1,4 +1,4 @@
-import { Controller, Method, Route, JsonResult, BaseController } from "@Bonbons";
+import { Controller, Method, Route, JsonResult, BaseController, FromBody, FromForm } from "@Bonbons";
 import { TestService } from "../service/test";
 import { ABC } from "../service/imp";
 
@@ -25,6 +25,18 @@ export class TestController extends BaseController {
         }
       }
     });
+  }
+
+  @Method("POST")
+  @Route("/postJSon")
+  public SendMessage(@FromBody() params) {
+    return this.toJSON(params);
+  }
+
+  @Method("POST")
+  @Route("/postForm")
+  public SendFormMessage(@FromForm() params) {
+    return this.toJSON(params);
   }
 
 }
