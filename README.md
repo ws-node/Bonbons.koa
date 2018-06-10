@@ -16,7 +16,7 @@ The core features are under development. Currently, the dependency injection sys
 ## Installation
 ```powershell
 # npm install bonbons.koa --save
-# still not support in npm :)
+# beta version :)
 ```
 
 ## How it works?
@@ -47,14 +47,8 @@ export class MainController extends BaseController {
         super();
     }
 
-    @Method("GET")
-    @Route("/index")
-    public GetIndex(): string {
-        return "this is a get method with base : ";
-    }
-
     @Method("GET", "POST")
-    @Route("index")
+    @Route("/index")
     public ApiIndex(): JsonResult {
         console.log("this is a api method with query id : " + this.context.query("id", Number));
         console.log("this is a api method with query select : " + this.context.query("select", Boolean));
@@ -63,7 +57,7 @@ export class MainController extends BaseController {
     }
 
     @Method("GET")
-    @Route("page", ["id", "select", "message"]) 
+    @Route("/page?{id}&{select}&{message}") 
     // provide query params name list to open static query feature
     // example : localhost/api/page?id=123456&select=true&message=mmmmmm
     public AnotherGET(id:number, select:boolean, message): JsonResult {
@@ -133,7 +127,7 @@ export class SuperService {
 // it works!
 ```
 
-#### 4. Add middlewares or pipe for route or controller
+#### 4. Add middlewares or pipe for route or controller (not completed in koa version)
 ```JavaScript
 // 1 : Middlewares like express style
 // first create middleware in pure function format.
@@ -148,7 +142,7 @@ function middleware02(r, rs, next) {
 
 // then add it to method by decorator
 @Method("GET", "POST")
-@Route("index")
+@Route("/index")
 @Middleware([middleware02])
 public ApiIndex(): JsonResult {
     return new JsonResult({ value: this.sup.print() });
@@ -172,7 +166,7 @@ export class MainController extends BaseController {
     }
 
     @Method("GET", "POST")
-    @Route("index")
+    @Route("/index2")
     @Middleware([middleware02], false) 
     // merge:true(default), will extends controller middlewares list : [middleware01, middleware02]
     // merge:false, will not extends controller middlewares list : [middleware02]
@@ -234,7 +228,7 @@ export const Authorize: IPipeFactory = createPipeBundle(TokenCheck);
 ```JavaScript
 // there are two ways to access the form data
     @Method("POST")
-    @Route("post")
+    @Route("/post")
     @Middleware([], false)
     public POSTIndex(name:string, @FromBody() params: any): JsonResult {
         console.log("this is a post method");
@@ -254,9 +248,9 @@ export const Authorize: IPipeFactory = createPipeBundle(TokenCheck);
     /*
     * All supported decorators :
     * @FromBody()   -   default : application/json
-    * @FormData()   -   default : multiple/form-data
+    * @FormData()   -   default : multiple/form-data (not completed in koa version)
     * @FromForm()   -   default : application/x-www-form-urlencoded
-    * @RawBody()   -   default : application/octet-stream
+    * @RawBody()   -   default : application/octet-stream (not completed in koa version)
     * @TextBody()   -   default : text/plain
     */
 
@@ -287,7 +281,7 @@ export class PostModel {
 
 // then try to create a post method:
     @Method("POST")
-    @Route("post/:id/details/:name", ["query", "find"])
+    @Route("/post/:id/details/:name?{query}&{find}")
     @Middleware([], false)
     public POSTIndex( // you can access params, queryParams and form object by function-params-injection.
         id: number,
