@@ -43,7 +43,7 @@ export class DIContainer implements BonbonsDIContainer {
       if (exist) throw registerError(el);
       const entry = new DIEntry(scope);
       const isConstructor = !!(<ImplementToken<any>>realel).prototype;
-      (<any>entry)._fac = fac && (() => (isConstructor ? new (<IConstructor<any>>realel)(...deps.map(dep => this.get(dep))) : realel));
+      (<any>entry)._fac = fac || (() => (isConstructor ? new (<IConstructor<any>>realel)(...deps.map(dep => this.get(dep))) : realel));
       this._pool.set(el, entry);
     });
   }

@@ -352,6 +352,7 @@ export class BonbonsServer implements IServer {
     if (!this._isDev) {
       this._clearServer();
     }
+    // console.log(this);
   }
 
   private _clearServer = () => {
@@ -365,8 +366,8 @@ export class BonbonsServer implements IServer {
   }
 
   private _initDIContainer() {
-    this._scoped.forEach(([tk, imp]) => this.scoped(tk, imp));
-    this._singleton.forEach(([tk, imp]) => this.singleton(tk, imp));
+    this._scoped.forEach(([tk, imp]) => this._injectable_final(tk, imp, InjectScope.Scoped));
+    this._singleton.forEach(([tk, imp]) => this._injectable_final(tk, imp, InjectScope.Singleton));
     this._di.complete();
   }
 
@@ -416,6 +417,15 @@ export class BonbonsServer implements IServer {
     type === InjectScope.Scoped ?
       this._scoped.push([provide, classType || provide]) :
       this._singleton.push([provide, classType || provide]);
+    return this;
+  }
+
+  private _injectable_final(provide: any, type: InjectScope): BonbonsServer;
+  private _injectable_final(provide: any, classType: any, type?: InjectScope): BonbonsServer;
+  private _injectable_final(provide: any, classType?: any, type?: InjectScope): BonbonsServer {
+    if (!provide) return this;
+    type = type || InjectScope.Singleton;
+    this._di.register(provide, classType || provide, type);
     return this;
   }
 
