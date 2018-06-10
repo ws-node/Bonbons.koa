@@ -7,7 +7,8 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 module.exports = {
   target: 'node',
   entry: {
-    index: path.resolve(__dirname, "index.ts")
+    index: path.resolve(__dirname, "index.ts"),
+    vendor: ["bonbons.koa"]
   },
   output: {
     path: path.resolve(__dirname, "server"),
