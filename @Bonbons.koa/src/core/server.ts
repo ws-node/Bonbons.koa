@@ -37,8 +37,8 @@ import { FormType, IConstructor } from "./../metadata/base";
 import { BaseFormOptions } from "./../metadata/options";
 
 export abstract class BaseApp {
-  public get config(): BonbonsServerConfig { return this["_configs"]; }
-  abstract start(): void;
+  protected get config(): BonbonsServerConfig { return this["_configs"]; }
+  public start(): void { }
 }
 
 export class BonbonsServer implements IServer {

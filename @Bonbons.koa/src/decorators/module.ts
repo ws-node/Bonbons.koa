@@ -8,7 +8,7 @@ export function BonbonsApp(config: BonbonsServerConfig) {
     target.prototype._configs = config;
     target.prototype.start = function () {
       new BonbonsServer(config).start();
-      theStartup.bind(this)();
+      theStartup && theStartup.bind(this)();
     };
   };
 }
