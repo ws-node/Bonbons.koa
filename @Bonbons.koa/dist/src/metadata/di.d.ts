@@ -1,4 +1,5 @@
-import { InjectScope, IInjectable } from "./injectable";
+import { InjectScope, IBonbonsInjectable, InjectDIToken, BonbonsDeptFactory, ImplementDIValue } from "./injectable";
+import { IConstructor } from "./base";
 export interface BonbonsToken<T> {
     key: symbol;
 }
@@ -17,9 +18,16 @@ export interface BonbonsConfigCollection {
 export interface BonbonsDIEntry {
     getInstance(): any;
 }
-export interface BonbonsDIContainer<T extends BonbonsDIEntry = BonbonsDIEntry> {
-    get<T>(token: IInjectable): T;
-    register(selector: any, value: any, scope: InjectScope): any;
-    resolveDeps(value: any): any[];
+export interface BonbonsDIContainer {
+    get<T>(token: InjectDIToken): T;
+    register(selector: InjectDIToken, value: any, scope: InjectScope): any;
+    resolveDeps<T>(value: IConstructor<T>): any[];
     complete(): void;
+}
+export interface BonbonsDeptNode<T extends IBonbonsInjectable = IBonbonsInjectable> {
+    el: InjectDIToken<T>;
+    realel: ImplementDIValue<T>;
+    deps: IConstructor<any>[];
+    scope: InjectScope;
+    fac?: BonbonsDeptFactory<T>;
 }

@@ -1,4 +1,4 @@
-import { BonbonsServer } from "./server";
+import { BonbonsServer, BaseApp } from "./server";
 /**
  * Bonbons
  * ------
@@ -7,4 +7,4 @@ import { BonbonsServer } from "./server";
  * Use Bonbons.Create() to create a new app.
  */
 export declare const Bonbons: typeof BonbonsServer;
-export { BonbonsServer as Server };
+export { BaseApp, BonbonsServer as Server };

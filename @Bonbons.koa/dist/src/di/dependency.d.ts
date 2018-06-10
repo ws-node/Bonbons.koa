@@ -1,14 +1,8 @@
-import { InjectScope } from "../metadata/injectable";
-export interface DeptNode {
-    el: any;
-    realel: any;
-    deps: any[];
-    scope: InjectScope;
-}
+import { BonbonsDeptNode } from "../metadata/di";
 export declare class DependencyQueue {
     private queue;
     private sections;
-    addNode(el: any, realel?: any, deps?: any[], scope?: InjectScope): void;
-    sort(): DeptNode[];
+    addNode({ el, realel, scope, deps }: BonbonsDeptNode): void;
+    sort(): BonbonsDeptNode[];
     private decideSection;
 }

@@ -1,19 +1,21 @@
 import { JsonFormOptions, URLFormOptions, TextFormOptions } from "../metadata/options";
+declare type FormDecorator = <T>(target: T, propertyKey: string, index_descriptor: number | TypedPropertyDescriptor<T>) => void;
 /** Get form message from body when type is [application/json] */
-export declare function FromBody(): any;
+export declare function FromBody(): FormDecorator;
 /** Get form message from body when default type is [application/json] */
-export declare function FromBody(type: string): any;
+export declare function FromBody(type: string): FormDecorator;
 /** Get form message from body when default type is [application/json] */
-export declare function FromBody(config: JsonFormOptions): any;
+export declare function FromBody(config: JsonFormOptions): FormDecorator;
 /** Get form message from body when type is [application/x-www-form-urlencoded] */
-export declare function FromForm(): any;
+export declare function FromForm(): FormDecorator;
 /** Get form message from body when default type is [application/x-www-form-urlencoded] */
-export declare function FromForm(type: string): any;
+export declare function FromForm(type: string): FormDecorator;
 /** Get form message from body when default type is [application/x-www-form-urlencoded] */
-export declare function FromForm(config: URLFormOptions): any;
+export declare function FromForm(config: URLFormOptions): FormDecorator;
 /** Get form message from body when type is [text/plain] */
-export declare function TextBody(): any;
+export declare function TextBody(): FormDecorator;
 /** Get form message from body when default type is [text/plain] */
-export declare function TextBody(type: string): any;
+export declare function TextBody(type: string): FormDecorator;
 /** Get form message from body when default type is [text/plain] */
-export declare function TextBody(config: TextFormOptions): any;
+export declare function TextBody(config: TextFormOptions): FormDecorator;
+export {};
