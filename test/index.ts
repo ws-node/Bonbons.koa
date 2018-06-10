@@ -1,12 +1,13 @@
-import { Bonbons } from "bonbons.koa";
-import { APIController } from "./src/controller/api";
-import { IndexController } from "./src/controller";
-import { AppService } from "./src/service/app";
-import { ScopeContract, ScopeService } from "./src/service/scope";
+import { Bonbons, JSON_RESULT_OPTIONS, JsonResultResolvers } from "@Bonbons";
+import { TestService } from "./src/service/test";
+import { ABC, ImplementService } from "./src/service/imp";
+import { valueTest, TOKEN_TEST } from "./src/config/test";
+import { TestController } from "./src/controller/test";
 
 Bonbons.Create()
-  .controller(IndexController)
-  .controller(APIController)
-  .singleton(AppService)
-  .scope(ScopeContract, ScopeService)
+  .scope(TestService)
+  .scope(ABC, ImplementService)
+  .controller(TestController)
+  .option(TOKEN_TEST, valueTest)
+  .option(JSON_RESULT_OPTIONS, { staticType: true, resolver: JsonResultResolvers.decamelize })
   .start();
