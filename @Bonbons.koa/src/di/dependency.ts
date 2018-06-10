@@ -9,7 +9,7 @@ export class DependencyQueue {
 
   public addNode({ el, realel, scope, deps }: BonbonsDeptNode) {
     const found = this.queue.find(i => i.el === el);
-    if (found) return;
+    if (found) throw duplicateError(el);
     deps = deps || [];
     const registerValue = realel || el;
     const { prototype } = <any>registerValue;
@@ -17,7 +17,7 @@ export class DependencyQueue {
     const isFactory = TypeCheck.isFunction(prototype || {});
     scope = scope || InjectScope.Singleton;
     this.queue.push({
-      el, realel: registerValue, deps,
+      el, realel: <any>registerValue, deps,
       scope: isConstructor ? scope : InjectScope.Singleton,
       fac: isFactory ? <any>registerValue : null
     });
@@ -59,3 +59,8 @@ function resolveError(el: any, depts: any[]) {
   );
 }
 
+function duplicateError(el: any) {
+  return invalidOperation(
+    `register service error : the inject token is duplicate : [${(el && el.name) || "unknown name"}]. `
+  );
+}

@@ -1,4 +1,4 @@
-import { BonbonsServer } from "./server";
+import { BonbonsServer, BaseApp } from "./server";
 
 /**
  * Bonbons
@@ -10,5 +10,6 @@ import { BonbonsServer } from "./server";
 export const Bonbons = BonbonsServer;
 
 export {
+  BaseApp,
   BonbonsServer as Server
 };

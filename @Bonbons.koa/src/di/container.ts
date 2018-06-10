@@ -1,7 +1,7 @@
 import { BonbonsDIContainer, BonbonsDIEntry } from "../metadata/di";
-import { InjectScope, IInjectable, IBonbonsInjectable } from "../metadata/injectable";
+import { InjectScope, IInjectable, IBonbonsInjectable, InjectDIToken, ImplementToken, ImplementDIValue } from "../metadata/injectable";
 import { DependencyQueue } from "./dependency";
-import { invalidOperation, invalidParam } from "../utils";
+import { invalidOperation, invalidParam, TypeCheck } from "../utils";
 import { getDependencies } from "./reflect";
 import { IConstructor } from "../metadata/base";
 
@@ -17,15 +17,18 @@ class DIEntry implements BonbonsDIEntry {
 export class DIContainer implements BonbonsDIContainer<DIEntry> {
 
   private deps_queue = new DependencyQueue();
-  protected _pool = new Map<IInjectable, DIEntry>();
+  protected _pool = new Map<InjectDIToken, DIEntry>();
 
-  public get<T>(token: IInjectable): T {
+  public get<T>(token: InjectDIToken): T {
     const entry = this._pool.get(token);
     return entry && entry.getInstance();
   }
 
-  public register(selector: any, value: any, scope: InjectScope) {
-    if (!value || !(<IBonbonsInjectable>value.prototype).__valid) throw serviceError(value);
+  public register(selector: InjectDIToken, value: ImplementDIValue, scope: InjectScope) {
+    if (!value) throw serviceError(value);
+    const { prototype, __valid } = <any>value;
+    if (prototype && !TypeCheck.isFunction(value) && !prototype.__valid) throw serviceError(value);
+    if (!prototype && !TypeCheck.isFunction(value) && !__valid) throw serviceError(value);
     this.deps_queue.addNode({ el: selector, realel: value, deps: getDependencies(value), scope });
   }
 
@@ -39,7 +42,7 @@ export class DIContainer implements BonbonsDIContainer<DIEntry> {
       const exist = this._pool.get(el);
       if (exist) throw registerError(el);
       const entry = new DIEntry(scope);
-      const isConstructor = !!(<any>realel).prototype;
+      const isConstructor = !!(<ImplementToken<any>>realel).prototype;
       (<any>entry)._fac = fac && (() => (isConstructor ? new (<IConstructor<any>>realel)(...deps.map(dep => this.get(dep))) : realel));
       this._pool.set(el, entry);
     });
@@ -48,7 +51,10 @@ export class DIContainer implements BonbonsDIContainer<DIEntry> {
 }
 
 function serviceError(selector: any) {
-  return invalidParam("Service to be add is invalid. You can only add the service been decorated by @Injectable(...).", { className: selector && selector.name });
+  return invalidParam("Service to be add is invalid. You can only add the service been decorated by @Injectable(...).", {
+    className: selector && selector.name,
+    stringfy: selector || {}
+  });
 }
 
 function registerError(selector: any) {

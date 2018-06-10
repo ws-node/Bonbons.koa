@@ -1,4 +1,4 @@
-import { IBonbonsServer as IServer, MiddlewaresFactory } from "../metadata/core";
+import { IBonbonsServer as IServer, MiddlewaresFactory, BonbonsServerConfig } from "../metadata/core";
 import {
   IController,
   IRoute,
@@ -20,13 +20,13 @@ import {
   TEXT_FORM_OPTIONS,
   URL_FORM_OPTIONS
 } from "../di";
+import { BonbonsDeptFactory as InjectFactory } from "./../metadata/injectable";
 import {
   BonbonsEntry as Entry,
   BonbonsToken as Token,
   BonbonsConfigCollection as IConfigs,
   BonbonsDIContainer as DIs,
   BonbonsToken,
-  BonbonsDeptFactory as InjectFactory
 } from "../metadata/di";
 import { invalidOperation, invalidParam, TypeCheck, TypedSerializer } from "../utils";
 import { KOAMiddleware, KOA, KOAContext, KOARouter, KOABodyParser, KOABodyParseOptions } from "../metadata/source";
@@ -36,31 +36,27 @@ import { DEFAULTS } from "./../options";
 import { FormType, IConstructor } from "./../metadata/base";
 import { BaseFormOptions } from "./../metadata/options";
 
+export abstract class BaseApp {
+  public get config(): BonbonsServerConfig { return this["_configs"]; }
+  abstract start(): void;
+}
+
 export class BonbonsServer implements IServer {
 
   public static Create() { return new BonbonsServer(); }
 
+  public static get New() { return BonbonsServer.Create(); }
+
   private _app = new KOA();
-  private _ctlrs: IController[] = [];
+  private _ctlrs: IConstructor<any>[] = [];
   private _di: DIs = new DIContainer();
   private _configs: IConfigs = new ConfigCollection();
   private _mwares: MiddlewaresFactory[] = [];
+  private _port = 3000;
 
-  constructor() {
+  constructor(config?: BonbonsServerConfig) {
     this._init();
-  }
-
-  private _init() {
-    this.option(DI_CONTAINER, this._di);
-    this.option(CONFIG_COLLECTION, this._configs);
-    this.option(STATIC_TYPED_RESOLVER, TypedSerializer);
-    this.option(JSON_RESULT_OPTIONS, DEFAULTS.jsonOptions);
-    this.option(STRING_RESULT_OPTIONS, DEFAULTS.stringOption);
-    this.option(ERROR_PAGE_TEMPLATE, DEFAULTS.errorTemplate);
-    this.option(BODY_PARSE_OPTIONS, { enableTypes: ["json", "form"] });
-    this.option(JSON_FORM_OPTIONS, { jsonLimit: "1mb" });
-    this.option(TEXT_FORM_OPTIONS, { textLimit: "1mb" });
-    this.option(URL_FORM_OPTIONS, { formLimit: "56kb" });
+    this._readConfig(config);
   }
 
   /**
@@ -130,8 +126,8 @@ export class BonbonsServer implements IServer {
    * @returns {BonbonsServer}
    * @memberof BonbonsServer
    */
-  public controller<T extends IController>(ctlr: any): BonbonsServer {
-    if (!ctlr || !(<T>ctlr).prototype.__valid) throw controllerError(ctlr);
+  public controller<T>(ctlr: IConstructor<T>): BonbonsServer {
+    if (!ctlr || !(<IConstructor<T>>ctlr).prototype.__valid) throw controllerError(ctlr);
     this._ctlrs.push(ctlr);
     return this;
   }
@@ -301,12 +297,9 @@ export class BonbonsServer implements IServer {
     return this._injectable(args[0], args[1], InjectScope.Singleton);
   }
 
-  public host(host?: string): BonbonsServer {
-    throw new Error("Method not implemented.");
-  }
-
   public port(port?: number): BonbonsServer {
-    throw new Error("Method not implemented.");
+    this._port = port || 3000;
+    return this;
   }
 
   /**
@@ -320,7 +313,42 @@ export class BonbonsServer implements IServer {
     this._di.complete();
     this._useRouters();
     this._useMiddlewares();
-    this._app.listen(3000);
+    this._app.listen(this._port);
+  }
+
+  private _readConfig(config?: BonbonsServerConfig) {
+    if (config) {
+      this._port = config.port || 3000;
+      this._mwares = config.middlewares || [];
+      this._ctlrs = config.controller || [];
+      (config.scoped || []).forEach(item => {
+        if (item instanceof Array) {
+          this.scoped(item[0], item[1]);
+        } else {
+          this.scoped(item);
+        }
+      });
+      (config.singleton || []).forEach(item => {
+        if (item instanceof Array) {
+          this.singleton(item[0], item[1]);
+        } else {
+          this.singleton(item);
+        }
+      });
+    }
+  }
+
+  private _init() {
+    this.option(DI_CONTAINER, this._di);
+    this.option(CONFIG_COLLECTION, this._configs);
+    this.option(STATIC_TYPED_RESOLVER, TypedSerializer);
+    this.option(JSON_RESULT_OPTIONS, DEFAULTS.jsonOptions);
+    this.option(STRING_RESULT_OPTIONS, DEFAULTS.stringOption);
+    this.option(ERROR_PAGE_TEMPLATE, DEFAULTS.errorTemplate);
+    this.option(BODY_PARSE_OPTIONS, { enableTypes: ["json", "form"] });
+    this.option(JSON_FORM_OPTIONS, { jsonLimit: "1mb" });
+    this.option(TEXT_FORM_OPTIONS, { textLimit: "1mb" });
+    this.option(URL_FORM_OPTIONS, { formLimit: "56kb" });
   }
 
   private _injectable(provide: any, type: InjectScope): BonbonsServer;

@@ -1,10 +1,17 @@
-import { IBonbonsController, IController } from "./controller";
-import { BonbonsToken, BonbonsEntry, BonbonsDeptFactory } from "./di";
+import { BonbonsToken, BonbonsEntry } from "./di";
 import { KOAMiddleware } from "./source";
 import { IConstructor } from "./base";
-import { InjectableToken, ImplementToken } from "./injectable";
+import { InjectableToken, ImplementToken, BonbonsDeptFactory, ImplementDIValue } from "./injectable";
 
 export type MiddlewaresFactory = () => KOAMiddleware;
+
+export interface BonbonsServerConfig {
+  port?: number;
+  controller?: IConstructor<any>[];
+  middlewares?: MiddlewaresFactory[];
+  scoped?: (IConstructor<any> | [InjectableToken<any>, ImplementDIValue<any>])[];
+  singleton?: (IConstructor<any> | [InjectableToken<any>, ImplementDIValue<any>])[];
+}
 
 export interface IBonbonsServer {
   use(mfac: MiddlewaresFactory): IBonbonsServer;
@@ -19,7 +26,6 @@ export interface IBonbonsServer {
   singleton<T, M>(token: InjectableToken<T>, srv: ImplementToken<M>): IBonbonsServer;
   singleton<T, M>(token: InjectableToken<T>, srv: BonbonsDeptFactory<M>): IBonbonsServer;
   singleton<T, M>(token: InjectableToken<T>, srv: M): IBonbonsServer;
-  host(host?: string): IBonbonsServer;
   port(port?: number): IBonbonsServer;
   start(): void;
 }
