@@ -8,5 +8,6 @@ Bonbons.Create()
   .controller(IndexController)
   .controller(APIController)
   .singleton(AppService)
-  .scope(ScopeContract, ScopeService)
+  .scoped(ScopeContract, ScopeService)
+  .port(3200)
   .start();
