@@ -1,4 +1,4 @@
-import { IBonbonsServer as IServer, MiddlewaresFactory, BonbonsServerConfig } from "../metadata/core";
+import { IBonbonsServer as IServer, MiddlewaresFactory, BonbonsServerConfig, BonbonsInjectEntry } from "../metadata/core";
 import {
   IController,
   IRoute,
@@ -325,14 +325,20 @@ export class BonbonsServer implements IServer {
         if (item instanceof Array) {
           this.scoped(item[0], item[1]);
         } else {
-          this.scoped(item);
+          const { token, implement } = <BonbonsInjectEntry<any>>item;
+          !token ?
+            this.scoped(<IConstructor<any>>item) :
+            this.scoped(token, implement);
         }
       });
       (config.singleton || []).forEach(item => {
         if (item instanceof Array) {
           this.singleton(item[0], item[1]);
         } else {
-          this.singleton(item);
+          const { token, implement } = <BonbonsInjectEntry<any>>item;
+          !token ?
+            this.singleton(<IConstructor<any>>item) :
+            this.singleton(token, implement);
         }
       });
       (config.options || []).forEach(item => {

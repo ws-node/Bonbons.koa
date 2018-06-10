@@ -20,13 +20,14 @@ import { TestController } from "./src/controller/test";
   controller: [TestController],
   scoped: [
     ImplementService,
-    [ABC, ImplementService],
+    { token: ABC, implement: ImplementService },
+    // [ABC, ImplementService],
     // [ABC, new ImplementService(new TestService())],
     // [ABC, () => new ImplementService(new TestService())]
   ],
   singleton: [TestService],
   options: [
-    [TOKEN_TEST, valueTest],
+    { token: TOKEN_TEST, value: valueTest },
     [JSON_RESULT_OPTIONS, { staticType: true, resolver: JsonResultResolvers.decamelize }]
   ]
 })
