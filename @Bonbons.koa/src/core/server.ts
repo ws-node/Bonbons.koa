@@ -205,6 +205,7 @@ function resolveFormParser(middlewares: any[], route: IRoute, configs: IConfigs)
 }
 
 function resolveParser(type: FormType, configs: IConfigs, options?: BaseFormOptions) {
+  console.log(options);
   switch (type) {
     // case FormType.MultipleFormData:
     //     return MultiplePartParser().any();

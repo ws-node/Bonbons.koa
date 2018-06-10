@@ -20,7 +20,6 @@ export interface IRoute {
     parser: FormType;
     index: number;
     options?: BaseFormOptions;
-    type?: string;
   };
 }
 

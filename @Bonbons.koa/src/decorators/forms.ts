@@ -51,15 +51,16 @@ export function TextBody(config?: string | TextFormOptions) {
 }
 
 function formDecoratorFactory(parser: FormType, config?: string | BaseFormOptions) {
-  const type = config && (typeof (config) === "string" ? config : config.type);
-  const configs = (typeof (config) === "string" ? { type } : config) || {};
+  const types = (config && (typeof (config) === "string" ? [config] : [])) || [];
+  const configs = (typeof (config) === "string" ? {} : config) || {};
+  configs.extends = [...(configs.extends || []), ...types];
   return function <T extends IBonbonsController>(target: T, propertyKey: string, index_descriptor: number | TypedPropertyDescriptor<T>) {
     const isParam = typeof index_descriptor === "number" && index_descriptor >= 0;
     const reflect = Reflection.GetControllerMetadata(target);
     if (isParam) {
-      Reflection.SetControllerMetadata(target, reroute(reflect, propertyKey, { form: { type, parser, configs, index: <number>index_descriptor } }));
+      Reflection.SetControllerMetadata(target, reroute(reflect, propertyKey, { form: { parser, options: configs, index: <number>index_descriptor } }));
     } else {
-      Reflection.SetControllerMetadata(target, reroute(reflect, propertyKey, { form: { type, parser, configs } }));
+      Reflection.SetControllerMetadata(target, reroute(reflect, propertyKey, { form: { parser, options: configs } }));
     }
   };
 }

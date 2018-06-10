@@ -29,7 +29,7 @@ export class TestController extends BaseController {
 
   @Method("POST")
   @Route("/postJSon")
-  public SendMessage(@FromBody() params) {
+  public SendMessage(@FromBody("application/javascript") params) {
     return this.toJSON(params);
   }
 
