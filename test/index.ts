@@ -1,8 +1,8 @@
 import { Bonbons } from "bonbons.koa";
-import { APIController } from "./controller/api";
-import { IndexController } from "./controller";
-import { AppService } from "./service/app";
-import { ScopeContract, ScopeService } from "./service/scope";
+import { APIController } from "./src/controller/api";
+import { IndexController } from "./src/controller";
+import { AppService } from "./src/service/app";
+import { ScopeContract, ScopeService } from "./src/service/scope";
 
 Bonbons.Create()
   .controller(IndexController)
