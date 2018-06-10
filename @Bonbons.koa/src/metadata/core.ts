@@ -11,6 +11,7 @@ export interface BonbonsServerConfig {
   middlewares?: MiddlewaresFactory[];
   scoped?: (IConstructor<any> | [InjectableToken<any>, ImplementDIValue<any>])[];
   singleton?: (IConstructor<any> | [InjectableToken<any>, ImplementDIValue<any>])[];
+  options?: Array<(BonbonsEntry<any> | [BonbonsToken<any>, any])>;
 }
 
 export interface IBonbonsServer {

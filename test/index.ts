@@ -7,8 +7,8 @@ import { TestController } from "./src/controller/test";
 // Bonbons.New
 //   .scoped(ImplementService)
 //   .scoped(ABC, () => new ImplementService(new TestService()))
-//   .scoped(ABC, ImplementService)
-//   .scoped(ABC, new ImplementService(new TestService()))
+//   // .scoped(ABC, ImplementService)
+//   // .scoped(ABC, new ImplementService(new TestService()))
 //   .scoped(TestService)
 //   .controller(TestController)
 //   .option(TOKEN_TEST, valueTest)
@@ -24,7 +24,11 @@ import { TestController } from "./src/controller/test";
     // [ABC, new ImplementService(new TestService())],
     // [ABC, () => new ImplementService(new TestService())]
   ],
-  singleton: [TestService]
+  singleton: [TestService],
+  options: [
+    [TOKEN_TEST, valueTest],
+    [JSON_RESULT_OPTIONS, { staticType: true, resolver: JsonResultResolvers.decamelize }]
+  ]
 })
 class App extends BaseApp {
 

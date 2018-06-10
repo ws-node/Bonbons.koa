@@ -335,6 +335,13 @@ export class BonbonsServer implements IServer {
           this.singleton(item);
         }
       });
+      (config.options || []).forEach(item => {
+        if (item instanceof Array) {
+          this.option(item[0], item[1]);
+        } else {
+          this.option(item);
+        }
+      });
     }
   }
 
