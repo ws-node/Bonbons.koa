@@ -1,4 +1,4 @@
-import { InjectScope, IInjectable } from "./injectable";
+import { InjectScope, IInjectable, IBonbonsInjectable } from "./injectable";
 import { IConstructor } from "./base";
 
 export interface BonbonsToken<T> {
@@ -29,4 +29,14 @@ export interface BonbonsDIContainer<T extends BonbonsDIEntry = BonbonsDIEntry> {
   register(selector: any, value: any, scope: InjectScope);
   resolveDeps(value: any): any[];
   complete(): void;
+}
+
+export type BonbonsDeptFactory<T> = () => T;
+
+export interface BonbonsDeptNode<T extends IBonbonsInjectable = IBonbonsInjectable> {
+  el: IConstructor<T>;
+  realel: IConstructor<T> | T | BonbonsDeptFactory<T>;
+  deps: IConstructor<any>[];
+  scope: InjectScope;
+  fac?: BonbonsDeptFactory<T>;
 }

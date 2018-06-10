@@ -1,35 +1,35 @@
 import { InjectScope } from "../metadata/injectable";
-import { invalidOperation } from "../utils";
-
-export interface DeptNode {
-  el: any;
-  realel: any;
-  deps: any[];
-  scope: InjectScope;
-}
+import { invalidOperation, TypeCheck } from "../utils";
+import { BonbonsDeptNode } from "../metadata/di";
 
 export class DependencyQueue {
 
-  private queue: DeptNode[] = [];
-  private sections: Array<DeptNode[]> = [];
+  private queue: BonbonsDeptNode[] = [];
+  private sections: Array<BonbonsDeptNode[]> = [];
 
-  public addNode(el: any, realel?: any, deps?: any[], scope?: InjectScope) {
+  public addNode({ el, realel, scope, deps }: BonbonsDeptNode) {
     const found = this.queue.find(i => i.el === el);
     if (found) return;
     deps = deps || [];
     const registerValue = realel || el;
-    const isConstructor = !!registerValue.prototype;
+    const { prototype } = <any>registerValue;
+    const isConstructor = !!prototype;
+    const isFactory = TypeCheck.isFunction(prototype || {});
     scope = scope || InjectScope.Singleton;
-    this.queue.push({ el, realel: registerValue, deps, scope: isConstructor ? scope : InjectScope.Singleton });
+    this.queue.push({
+      el, realel: registerValue, deps,
+      scope: isConstructor ? scope : InjectScope.Singleton,
+      fac: isFactory ? <any>registerValue : null
+    });
   }
 
-  public sort(): DeptNode[] {
+  public sort(): BonbonsDeptNode[] {
     this.sections[0] = this.queue.filter(i => i.deps.length === 0);
     this.decideSection(this.queue.filter(i => i.deps.length > 0), this.sections, 1);
     return this.sections.reduce((pre, cur, idx, arr) => ([...pre, ...cur]));
   }
 
-  private decideSection(queue: DeptNode[], sections: Array<DeptNode[]>, current: number) {
+  private decideSection(queue: BonbonsDeptNode[], sections: Array<BonbonsDeptNode[]>, current: number) {
     if (queue.length === 0) return;
     const wants = queue.filter(item => resolveUnder(item, sections, current - 1, this.queue));
     if (wants.length === 0) return;
@@ -39,8 +39,8 @@ export class DependencyQueue {
 
 }
 
-function resolveUnder(node: DeptNode, sections: Array<DeptNode[]>, checkIndex: number, sourceQueue: DeptNode[]) {
-  const checkArr: DeptNode[] = [];
+function resolveUnder(node: BonbonsDeptNode, sections: Array<BonbonsDeptNode[]>, checkIndex: number, sourceQueue: BonbonsDeptNode[]) {
+  const checkArr: BonbonsDeptNode[] = [];
   if (checkIndex < 0) return false;
   let index = checkIndex;
   while (index >= 0) {

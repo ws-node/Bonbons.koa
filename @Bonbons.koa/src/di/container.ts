@@ -3,6 +3,7 @@ import { InjectScope, IInjectable, IBonbonsInjectable } from "../metadata/inject
 import { DependencyQueue } from "./dependency";
 import { invalidOperation, invalidParam } from "../utils";
 import { getDependencies } from "./reflect";
+import { IConstructor } from "../metadata/base";
 
 class DIEntry implements BonbonsDIEntry {
   private _instance: any;
@@ -25,7 +26,7 @@ export class DIContainer implements BonbonsDIContainer<DIEntry> {
 
   public register(selector: any, value: any, scope: InjectScope) {
     if (!value || !(<IBonbonsInjectable>value.prototype).__valid) throw serviceError(value);
-    this.deps_queue.addNode(selector, value, getDependencies(value), scope);
+    this.deps_queue.addNode({ el: selector, realel: value, deps: getDependencies(value), scope });
   }
 
   public resolveDeps(value) {
@@ -34,13 +35,13 @@ export class DIContainer implements BonbonsDIContainer<DIEntry> {
 
   public complete() {
     const finals = this.deps_queue.sort();
-    finals.forEach(node => {
-      const exist = this._pool.get(node.el);
-      if (exist) throw registerError(node.el);
-      const entry = new DIEntry(node.scope);
-      const isConstructor = !!node.realel.prototype;
-      (<any>entry)._fac = () => (isConstructor ? new node.realel(...node.deps.map(dep => this.get(dep))) : node.realel);
-      this._pool.set(node.el, entry);
+    finals.forEach(({ el, deps, realel, fac, scope }) => {
+      const exist = this._pool.get(el);
+      if (exist) throw registerError(el);
+      const entry = new DIEntry(scope);
+      const isConstructor = !!(<any>realel).prototype;
+      (<any>entry)._fac = fac && (() => (isConstructor ? new (<IConstructor<any>>realel)(...deps.map(dep => this.get(dep))) : realel));
+      this._pool.set(el, entry);
     });
   }
 

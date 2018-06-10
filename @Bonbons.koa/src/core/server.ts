@@ -25,14 +25,15 @@ import {
   BonbonsToken as Token,
   BonbonsConfigCollection as IConfigs,
   BonbonsDIContainer as DIs,
-  BonbonsToken
+  BonbonsToken,
+  BonbonsDeptFactory as InjectFactory
 } from "../metadata/di";
 import { invalidOperation, invalidParam, TypeCheck, TypedSerializer } from "../utils";
 import { KOAMiddleware, KOA, KOAContext, KOARouter, KOABodyParser, KOABodyParseOptions } from "../metadata/source";
-import { InjectScope } from "../metadata/injectable";
+import { InjectScope, InjectableToken, ImplementToken } from "../metadata/injectable";
 import { Context } from "../controller";
 import { DEFAULTS } from "./../options";
-import { FormType } from "./../metadata/base";
+import { FormType, IConstructor } from "./../metadata/base";
 import { BaseFormOptions } from "./../metadata/options";
 
 export class BonbonsServer implements IServer {
@@ -62,14 +63,46 @@ export class BonbonsServer implements IServer {
     this.option(URL_FORM_OPTIONS, { formLimit: "56kb" });
   }
 
-  public use(mfac: MiddlewaresFactory): IServer {
+  /**
+   * Use koa middleware.
+   * ---
+   * @description
+   * @author Big Mogician
+   * @param {MiddlewaresFactory} mfac the factory of koa middleware.
+   * @returns {BonbonsServer}
+   * @memberof BonbonsServer
+   */
+  public use(mfac: MiddlewaresFactory): BonbonsServer {
     this._mwares.push(mfac);
     return this;
   }
 
-  public option<T>(entry: Entry<T>): IServer;
-  public option<T>(token: Token<T>, value: T): IServer;
-  public option(...args: any[]): IServer {
+  /**
+   * Set an option
+   * ---
+   * Set an option with format entry{@BonbonsEntry<T>}.
+   * @description
+   * @author Big Mogician
+   * @template T
+   * @param {BonbonsEntry<T>} entry BonbonsEntry<T>
+   * @returns {BonbonsServer}
+   * @memberof BonbonsServer
+   */
+  public option<T>(entry: Entry<T>): BonbonsServer;
+  /**
+   * Set an option
+   * ---
+   * Set an option with token and provided value.
+   * @description
+   * @author Big Mogician
+   * @template T
+   * @param {Token<T>} token
+   * @param {T} value
+   * @returns {BonbonsServer}
+   * @memberof BonbonsServer
+   */
+  public option<T>(token: Token<T>, value: T): BonbonsServer;
+  public option(...args: any[]): BonbonsServer {
     const [e1, e2] = args;
     if (!e1) {
       throw invalidOperation("DI token or entry is empty, you shouldn't call BonbonsServer.use<T>(...) without any param.");
@@ -83,41 +116,185 @@ export class BonbonsServer implements IServer {
     return this;
   }
 
-  public controller<T extends IController>(ctlr: any): IServer {
+  public controller<T extends IController>(ctlr: any): BonbonsServer {
     if (!ctlr || !(<T>ctlr).prototype.__valid) throw controllerError(ctlr);
     this._ctlrs.push(ctlr);
     return this;
   }
 
-  private injectable(provide: any, type: InjectScope): IServer;
-  private injectable(provide: any, classType: any, type?: InjectScope): IServer;
-  private injectable(provide: any, classType?: any, type?: InjectScope): IServer {
+  private injectable(provide: any, type: InjectScope): BonbonsServer;
+  private injectable(provide: any, classType: any, type?: InjectScope): BonbonsServer;
+  private injectable(provide: any, classType?: any, type?: InjectScope): BonbonsServer {
     if (!provide) return this;
     type = type || InjectScope.Singleton;
     this._di.register(provide, classType || provide, type);
     return this;
   }
 
-  public scope(srv: any): IServer;
-  public scope(token: any, srv: any): IServer;
-  public scope(...args: any[]): IServer {
+  /**
+   * Set a scoped servics
+   * ---
+   * Set a scoped service with constructor.
+   * All scoped services will be created new instance in different request pipe
+   *
+   * @description
+   * @author Big Mogician
+   * @template T
+   * @param {IConstructor<T>} srv
+   * @returns {BonbonsServer}
+   * @memberof BonbonsServer
+   */
+  public scoped<T>(srv: IConstructor<T>): BonbonsServer;
+  /**
+   * Set a scoped servics
+   * ---
+   * Set a scoped service with injectable token (such abstract class,
+   * but not the typescript interface because there's no interface in
+   * the javascript runtime) and implement service constructor. All
+   * scoped services will be created new instance in different request pipe.
+   *
+   * @description
+   * @author Big Mogician
+   * @template B
+   * @template T
+   * @param {InjectableToken<B>} token
+   * @param {ImplementToken<T>} srv
+   * @returns {BonbonsServer}
+   * @memberof BonbonsServer
+   */
+  public scoped<B, T>(token: InjectableToken<B>, srv: ImplementToken<T>): BonbonsServer;
+  /**
+   * Set a scoped servics
+   * ---
+   * Set a scoped service with injectable token (such abstract class,
+   * but not the typescript interface because there's no interface in
+   * the javascript runtime) and implement service instance factory
+   * ( pure function with no side effects).
+   * All scoped services will be created new instance in different request pipe.
+   *
+   * @description
+   * @author Big Mogician
+   * @template B
+   * @template T
+   * @param {InjectableToken<B>} token
+   * @param {InjectFactory<T>} srv
+   * @returns {BonbonsServer}
+   * @memberof BonbonsServer
+   */
+  public scoped<B, T>(token: InjectableToken<B>, srv: InjectFactory<T>): BonbonsServer;
+  /**
+   * Set a scoped servics
+   * ---
+   * Set a scoped service with injectable token (such abstract class,
+   * but not the typescript interface because there's no interface in
+   * the javascript runtime) and a well-created implement service instance.
+   * All scoped services will be created new
+   * instance in different request pipe (but injecting by instance means
+   * the instance may be changed in runtime, so please be careful. If you
+   * want to prevent this situation, use a service factory here).
+   *
+   * @description
+   * @author Big Mogician
+   * @template T
+   * @param {InjectableToken} token
+   * @param {T} srv
+   * @returns {BonbonsServer}
+   * @memberof BonbonsServer
+   */
+  public scoped<B, T>(token: InjectableToken<B>, srv: T): BonbonsServer;
+  public scoped(...args: any[]): BonbonsServer {
     return this.injectable(args[0], args[1], InjectScope.Scoped);
   }
 
-  public singleton(srv: any): IServer;
-  public singleton(token: any, srv: any): IServer;
-  public singleton(...args: any[]): IServer {
+  /**
+   * Set a singleton service
+   * ---
+   * Set a singleton service with constructor.
+   * All singleton services will use unique instance throught different request pipes.
+   *
+   * @description
+   * @author Big Mogician
+   * @template T
+   * @param {IConstructor<T>} srv
+   * @returns {BonbonsServer}
+   * @memberof BonbonsServer
+   */
+  public singleton<T>(srv: IConstructor<T>): BonbonsServer;
+  /**
+   * Set a singleton service
+   * ---
+   * Set a singleton service with injectable token (such abstract class,
+   * but not the typescript interface because there's no interface in
+   * the javascript runtime) and implement service constructor.
+   * All singleton services will use unique
+   * instance throught different request pipes.
+   *
+   * @description
+   * @author Big Mogician
+   * @template B
+   * @template T
+   * @param {InjectableToken<B>} token
+   * @param {ImplementToken<T>} srv
+   * @returns {BonbonsServer}
+   * @memberof BonbonsServer
+   */
+  public singleton<B, T>(token: InjectableToken<B>, srv: ImplementToken<T>): BonbonsServer;
+  /**
+   * Set a singleton service
+   * ---
+   * Set a singleton service with injectable token (such abstract class,
+   * but not the typescript interface because there's no interface in
+   * the javascript runtime) and implement service factory ( pure function with no side effects).
+   * All singleton services will use unique
+   * instance throught different request pipes.
+   *
+   * @description
+   * @author Big Mogician
+   * @template B
+   * @template T
+   * @param {InjectableToken<B>} token
+   * @param {InjectFactory<T>} srv
+   * @returns {BonbonsServer}
+   * @memberof BonbonsServer
+   */
+  public singleton<B, T>(token: InjectableToken<B>, srv: InjectFactory<T>): BonbonsServer;
+  /**
+   * Set a singleton service
+   * ---
+   * Set a singleton service with injectable token (such abstract class,
+   * but not the typescript interface because there's no interface in
+   * the javascript runtime) and a well-created implement service instance.
+   * All singleton services will use unique
+   * instance throught different request pipes.
+   *
+   * @description
+   * @author Big Mogician
+   * @template T
+   * @param {InjectableToken} token
+   * @param {T} srv
+   * @returns {BonbonsServer}
+   * @memberof BonbonsServer
+   */
+  public singleton<B, T>(token: InjectableToken<B>, srv: T): BonbonsServer;
+  public singleton(...args: any[]): BonbonsServer {
     return this.injectable(args[0], args[1], InjectScope.Singleton);
   }
 
-  public host(host?: string): IServer {
+  public host(host?: string): BonbonsServer {
     throw new Error("Method not implemented.");
   }
 
-  public port(port?: number): IServer {
+  public port(port?: number): BonbonsServer {
     throw new Error("Method not implemented.");
   }
 
+  /**
+   * Start application
+   * ---
+   * @description
+   * @author Big Mogician
+   * @memberof BonbonsServer
+   */
   public start(): void {
     this._di.complete();
     this._useRouters();
