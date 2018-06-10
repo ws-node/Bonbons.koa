@@ -35,7 +35,7 @@ export class TestController extends BaseController {
 
   @Method("POST")
   @Route("/postForm")
-  public SendFormMessage(@FromForm() params) {
+  public SendFormMessage(@FromForm({ formLimit: '50kb', }) params) {
     return this.toJSON(params);
   }
 

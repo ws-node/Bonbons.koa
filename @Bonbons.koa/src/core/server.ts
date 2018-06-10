@@ -57,6 +57,9 @@ export class BonbonsServer implements IServer {
     this.option(STRING_RESULT_OPTIONS, DEFAULTS.stringOption);
     this.option(ERROR_PAGE_TEMPLATE, DEFAULTS.errorTemplate);
     this.option(BODY_PARSE_OPTIONS, { enableTypes: ["json", "form"] });
+    this.option(JSON_FORM_OPTIONS, { jsonLimit: "1mb" });
+    this.option(TEXT_FORM_OPTIONS, { textLimit: "1mb" });
+    this.option(URL_FORM_OPTIONS, { formLimit: "56kb" });
   }
 
   public use(mfac: MiddlewaresFactory): IServer {
@@ -205,7 +208,7 @@ function resolveFormParser(middlewares: any[], route: IRoute, configs: IConfigs)
 }
 
 function resolveParser(type: FormType, configs: IConfigs, options?: BaseFormOptions) {
-  console.log(options);
+  // console.log(options);
   switch (type) {
     // case FormType.MultipleFormData:
     //     return MultiplePartParser().any();
@@ -222,14 +225,14 @@ function resolveParser(type: FormType, configs: IConfigs, options?: BaseFormOpti
 }
 
 function resolveParserOptions<T>(key: BonbonsToken<T>, configs: IConfigs, options: BaseFormOptions): KOAMiddleware {
-  console.log(options);
+  // console.log(options);
   const { type, extends: extendsV } = options;
   (<any>options).enableTypes = [type];
   const etx = (<KOABodyParseOptions>options).extendTypes = {};
   etx[(<string>type)] = extendsV || [];
   delete options.type;
   delete options.extends;
-  console.log(JSON.stringify(Object.assign(configs.get(key) || {}, options)));
+  // console.log(JSON.stringify(Object.assign(configs.get(key) || {}, options)));
   return KOABodyParser(Object.assign(configs.get(key) || {}, options));
 }
 
