@@ -1,6 +1,12 @@
-import { IBonbonsServer as IServer, MiddlewaresFactory, BonbonsServerConfig, BonbonsInjectEntry, KOAMiddlewareTuple } from "../metadata/core";
 import {
-  IController,
+  IBonbonsServer as IServer,
+  MiddlewaresFactory,
+  BonbonsServerConfig,
+  BonbonsInjectEntry,
+  KOAMiddlewareTuple,
+  InjectableServiceType
+} from "../metadata/core";
+import {
   IRoute,
   UnionBonbonsResult as IResult,
   IBonbonsControllerMetadata as ControllerMetadata,
@@ -20,16 +26,23 @@ import {
   TEXT_FORM_OPTIONS,
   URL_FORM_OPTIONS
 } from "../di";
-import { BonbonsDeptFactory as InjectFactory } from "./../metadata/injectable";
+import { BonbonsDeptFactory as InjectFactory, InjectDIToken, ImplementDIValue } from "./../metadata/injectable";
 import {
   BonbonsEntry as Entry,
   BonbonsToken as Token,
   BonbonsConfigCollection as IConfigs,
-  BonbonsDIContainer as DIs,
+  BonbonsDIContainer as IDIContainer,
   BonbonsToken,
 } from "../metadata/di";
 import { invalidOperation, invalidParam, TypeCheck, TypedSerializer } from "../utils";
-import { KOAMiddleware, KOA, KOAContext, KOARouter, KOABodyParser, KOABodyParseOptions } from "../metadata/source";
+import {
+  KOAMiddleware,
+  KOA,
+  KOAContext,
+  KOARouter,
+  KOABodyParser,
+  KOABodyParseOptions
+} from "../metadata/source";
 import { InjectScope, InjectableToken, ImplementToken } from "../metadata/injectable";
 import { Context } from "../controller";
 import { DEFAULTS } from "./../options";
@@ -47,16 +60,35 @@ export class BonbonsServer implements IServer {
 
   public static get New() { return BonbonsServer.Create(); }
 
+  /**
+   * DI container
+   * ---
+   * could be change by set option DI_CONTAINER
+   *
+   * @description
+   * @private
+   * @type {IDIContainer}
+   * @memberof BonbonsServer
+   */
+  private _di!: IDIContainer;
+
   private _app = new KOA();
   private _ctlrs: IConstructor<any>[] = [];
-  private _di: DIs = new DIContainer();
   private _configs: IConfigs = new ConfigCollection();
   private _mwares: KOAMiddlewareTuple[] = [];
+  private _scoped: [InjectableToken<any>, ImplementDIValue][] = [];
+  private _singleton: [InjectableToken<any>, ImplementDIValue][] = [];
   private _port = 3000;
+  private _isDev = true;
 
   constructor(config?: BonbonsServerConfig) {
     this._init();
     this._readConfig(config);
+  }
+
+  public mode(mode: "development" | "production"): BonbonsServer {
+    this._isDev = mode === "development";
+    return this;
   }
 
   /**
@@ -308,44 +340,48 @@ export class BonbonsServer implements IServer {
    * ---
    * @description
    * @author Big Mogician
+   * @param {boolean} dev
    * @memberof BonbonsServer
    */
   public start(): void {
-    this._di.complete();
+    this._di = this._configs.get(DI_CONTAINER);
+    this._initDIContainer();
     this._useRouters();
     this._useMiddlewares();
     this._app.listen(this._port);
+    if (!this._isDev) {
+      this._clearServer();
+    }
+  }
+
+  private _clearServer = () => {
+    delete this._app;
+    delete this._ctlrs;
+    delete this._mwares;
+    delete this._scoped;
+    delete this._singleton;
+    delete this._port;
+    delete this._clearServer;
+  }
+
+  private _initDIContainer() {
+    this._scoped.forEach(([tk, imp]) => this.scoped(tk, imp));
+    this._singleton.forEach(([tk, imp]) => this.singleton(tk, imp));
+    this._di.complete();
   }
 
   private _readConfig(config?: BonbonsServerConfig) {
     if (config) {
+      this._isDev = config.mode !== "production";
       this._port = config.port || 3000;
       this._ctlrs = config.controller || [];
+      resolveInjections(this._scoped, config.scoped || []);
+      resolveInjections(this._singleton, config.singleton || []);
       (config.middlewares || []).forEach(item => {
         if (item instanceof Array) {
           this._mwares.push([item[0], item[1]]);
         } else {
           this._mwares.push([item, []]);
-        }
-      });
-      (config.scoped || []).forEach(item => {
-        if (item instanceof Array) {
-          this.scoped(item[0], item[1]);
-        } else {
-          const { token, implement } = <BonbonsInjectEntry<any>>item;
-          !token ?
-            this.scoped(<IConstructor<any>>item) :
-            this.scoped(token, implement);
-        }
-      });
-      (config.singleton || []).forEach(item => {
-        if (item instanceof Array) {
-          this.singleton(item[0], item[1]);
-        } else {
-          const { token, implement } = <BonbonsInjectEntry<any>>item;
-          !token ?
-            this.singleton(<IConstructor<any>>item) :
-            this.singleton(token, implement);
         }
       });
       (config.options || []).forEach(item => {
@@ -359,8 +395,8 @@ export class BonbonsServer implements IServer {
   }
 
   private _init() {
-    this.option(DI_CONTAINER, this._di);
     this.option(CONFIG_COLLECTION, this._configs);
+    this.option(DI_CONTAINER, new DIContainer());
     this.option(STATIC_TYPED_RESOLVER, TypedSerializer);
     this.option(JSON_RESULT_OPTIONS, DEFAULTS.jsonOptions);
     this.option(STRING_RESULT_OPTIONS, DEFAULTS.stringOption);
@@ -376,7 +412,10 @@ export class BonbonsServer implements IServer {
   private _injectable(provide: any, classType?: any, type?: InjectScope): BonbonsServer {
     if (!provide) return this;
     type = type || InjectScope.Singleton;
-    this._di.register(provide, classType || provide, type);
+    // this._di.register(provide, classType || provide, type);
+    type === InjectScope.Scoped ?
+      this._scoped.push([provide, classType || provide]) :
+      this._singleton.push([provide, classType || provide]);
     return this;
   }
 
@@ -455,6 +494,19 @@ export class BonbonsServer implements IServer {
     return invoke;
   }
 
+}
+
+function resolveInjections(list: [InjectableToken<any>, ImplementDIValue][], injects: InjectableServiceType[]) {
+  (injects || []).forEach(item => {
+    if (item instanceof Array) {
+      list.push(item);
+    } else {
+      const { token, implement } = <BonbonsInjectEntry<any>>item;
+      !token ?
+        list.push(<any>[item, item]) :
+        list.push([token, implement]);
+    }
+  });
 }
 
 function resolveFormParser(middlewares: any[], route: IRoute, configs: IConfigs) {

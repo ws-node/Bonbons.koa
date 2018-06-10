@@ -1,5 +1,5 @@
 import { BonbonsDIContainer, BonbonsDIEntry } from "../metadata/di";
-import { InjectScope, IInjectable, IBonbonsInjectable, InjectDIToken, ImplementToken, ImplementDIValue } from "../metadata/injectable";
+import { InjectScope, InjectDIToken, ImplementToken, ImplementDIValue } from "../metadata/injectable";
 import { DependencyQueue } from "./dependency";
 import { invalidOperation, invalidParam, TypeCheck } from "../utils";
 import { getDependencies } from "./reflect";
@@ -14,7 +14,7 @@ class DIEntry implements BonbonsDIEntry {
   }
 }
 
-export class DIContainer implements BonbonsDIContainer<DIEntry> {
+export class DIContainer implements BonbonsDIContainer {
 
   private deps_queue = new DependencyQueue();
   protected _pool = new Map<InjectDIToken, DIEntry>();

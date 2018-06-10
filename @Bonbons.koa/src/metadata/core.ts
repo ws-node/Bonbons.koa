@@ -7,6 +7,8 @@ export type MiddlewaresFactory = (...args: any[]) => KOAMiddleware;
 export type KOAMiddlewareTuple = [MiddlewaresFactory, Array<any>];
 export type BonbonsKOAMiddleware = MiddlewaresFactory | KOAMiddlewareTuple;
 
+export type InjectableServiceType = IConstructor<any> | [InjectableToken<any>, ImplementDIValue<any>] | BonbonsInjectEntry<any>;
+
 /**
  * The inject-entry for injectable service in @BonbonsApp(...)
  * @description
@@ -45,6 +47,7 @@ export interface BonbonsInjectEntry<T> {
  * @interface BonbonsServerConfig
  */
 export interface BonbonsServerConfig {
+  mode?: "development" | "production";
   /**
    * The port to expose and listen.
    * @description
@@ -125,7 +128,7 @@ export interface BonbonsServerConfig {
    * @type {(Array<(IConstructor<any> | [InjectableToken<any>, ImplementDIValue<any>] | BonbonsInjectEntry<any>)>)}
    * @memberof BonbonsServerConfig
    */
-  scoped?: Array<(IConstructor<any> | [InjectableToken<any>, ImplementDIValue<any>] | BonbonsInjectEntry<any>)>;
+  scoped?: Array<InjectableServiceType>;
   /**
    * Singleton services
    * ---
@@ -177,7 +180,7 @@ export interface BonbonsServerConfig {
    * @type {(Array<(IConstructor<any> | [InjectableToken<any>, ImplementDIValue<any>] | BonbonsInjectEntry<any>)>)}
    * @memberof BonbonsServerConfig
    */
-  singleton?: Array<(IConstructor<any> | [InjectableToken<any>, ImplementDIValue<any>] | BonbonsInjectEntry<any>)>;
+  singleton?: Array<InjectableServiceType>;
   /**
    * Options to modify this application
    * ---
@@ -214,5 +217,6 @@ export interface IBonbonsServer {
   singleton<T, M>(token: InjectableToken<T>, srv: BonbonsDeptFactory<M>): IBonbonsServer;
   singleton<T, M>(token: InjectableToken<T>, srv: M): IBonbonsServer;
   port(port?: number): IBonbonsServer;
+  mode(mode: "development" | "production"): IBonbonsServer;
   start(): void;
 }

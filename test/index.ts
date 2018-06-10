@@ -16,6 +16,7 @@ import { TestController } from "./src/controller/test";
 //   .start();
 
 @BonbonsApp({
+  mode: "development",
   port: 3000,
   controller: [TestController],
   scoped: [
@@ -34,7 +35,8 @@ import { TestController } from "./src/controller/test";
 class App extends BaseApp {
 
   start(): void {
-    console.log(this.config);
+    console.log(`app is running on port ${this.config.port || 3000}`);
+    // console.log(this.config);
   }
 
 }

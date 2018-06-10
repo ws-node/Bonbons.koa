@@ -24,10 +24,10 @@ export interface BonbonsDIEntry {
   getInstance(): any;
 }
 
-export interface BonbonsDIContainer<T extends BonbonsDIEntry = BonbonsDIEntry> {
+export interface BonbonsDIContainer {
   get<T>(token: InjectDIToken): T;
   register(selector: InjectDIToken, value: any, scope: InjectScope);
-  resolveDeps(value: any): any[];
+  resolveDeps<T>(value: IConstructor<T>): any[];
   complete(): void;
 }
 
