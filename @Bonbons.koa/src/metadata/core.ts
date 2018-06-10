@@ -3,8 +3,10 @@ import { BonbonsToken, BonbonsEntry } from "./di";
 import { KOAMiddleware } from "./source";
 import { IConstructor } from "./base";
 
+export type MiddlewaresFactory = () => KOAMiddleware;
+
 export interface IBonbonsServer {
-  use(middleware: KOAMiddleware): IBonbonsServer;
+  use(mfac: MiddlewaresFactory): IBonbonsServer;
   option<T>(entry: BonbonsEntry<T>): IBonbonsServer;
   option<T>(token: BonbonsToken<T>, value: T): IBonbonsServer;
   controller<T extends IConstructor<any>>(ctlr: T): IBonbonsServer;
