@@ -1,4 +1,4 @@
-import { IBonbonsServer as IServer, MiddlewaresFactory, BonbonsServerConfig, BonbonsInjectEntry } from "../metadata/core";
+import { IBonbonsServer as IServer, MiddlewaresFactory, BonbonsServerConfig, BonbonsInjectEntry, KOAMiddlewareTuple } from "../metadata/core";
 import {
   IController,
   IRoute,
@@ -51,7 +51,7 @@ export class BonbonsServer implements IServer {
   private _ctlrs: IConstructor<any>[] = [];
   private _di: DIs = new DIContainer();
   private _configs: IConfigs = new ConfigCollection();
-  private _mwares: MiddlewaresFactory[] = [];
+  private _mwares: KOAMiddlewareTuple[] = [];
   private _port = 3000;
 
   constructor(config?: BonbonsServerConfig) {
@@ -64,12 +64,13 @@ export class BonbonsServer implements IServer {
    * ---
    * @description
    * @author Big Mogician
-   * @param {MiddlewaresFactory} mfac the factory of koa middleware.
+   * @param {MiddlewaresFactory} mfac middleware factory
+   * @param {...any[]} params factory params
    * @returns {BonbonsServer}
    * @memberof BonbonsServer
    */
-  public use(mfac: MiddlewaresFactory): BonbonsServer {
-    this._mwares.push(mfac);
+  public use(mfac: MiddlewaresFactory, ...params: any[]): BonbonsServer {
+    this._mwares.push([mfac, params]);
     return this;
   }
 
@@ -319,8 +320,14 @@ export class BonbonsServer implements IServer {
   private _readConfig(config?: BonbonsServerConfig) {
     if (config) {
       this._port = config.port || 3000;
-      this._mwares = config.middlewares || [];
       this._ctlrs = config.controller || [];
+      (config.middlewares || []).forEach(item => {
+        if (item instanceof Array) {
+          this._mwares.push([item[0], item[1]]);
+        } else {
+          this._mwares.push([item, []]);
+        }
+      });
       (config.scoped || []).forEach(item => {
         if (item instanceof Array) {
           this.scoped(item[0], item[1]);
@@ -399,7 +406,7 @@ export class BonbonsServer implements IServer {
   }
 
   private _useMiddlewares() {
-    this._mwares.forEach(fac => this._app.use(fac()));
+    this._mwares.forEach(([fac, ...args]) => this._app.use(fac(...args)));
   }
 
   private _selectFormParser(route: IRoute, middlewares: any[]) {

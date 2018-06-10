@@ -3,7 +3,9 @@ import { KOAMiddleware } from "./source";
 import { IConstructor } from "./base";
 import { InjectableToken, ImplementToken, BonbonsDeptFactory, ImplementDIValue } from "./injectable";
 
-export type MiddlewaresFactory = () => KOAMiddleware;
+export type MiddlewaresFactory = (...args: any[]) => KOAMiddleware;
+export type KOAMiddlewareTuple = [MiddlewaresFactory, Array<any>];
+export type BonbonsKOAMiddleware = MiddlewaresFactory | KOAMiddlewareTuple;
 
 /**
  * The inject-entry for injectable service in @BonbonsApp(...)
@@ -68,10 +70,10 @@ export interface BonbonsServerConfig {
    * * send the factory but not the middleware result here.
    *
    * @description
-   * @type {MiddlewaresFactory[]}
+   * @type {BonbonsKOAMiddleware[]}
    * @memberof BonbonsServerConfig
    */
-  middlewares?: MiddlewaresFactory[];
+  middlewares?: BonbonsKOAMiddleware[];
   /**
    * Scoped services
    * ---
