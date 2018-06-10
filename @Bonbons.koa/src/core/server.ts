@@ -28,7 +28,7 @@ import {
   BonbonsToken
 } from "../metadata/di";
 import { invalidOperation, invalidParam, TypeCheck, TypedSerializer } from "../utils";
-import { KOAMiddleware, KOA, KOAContext, KOARouter, KOABodyParser } from "../metadata/source";
+import { KOAMiddleware, KOA, KOAContext, KOARouter, KOABodyParser, KOABodyParseOptions } from "../metadata/source";
 import { InjectScope } from "../metadata/injectable";
 import { Context } from "../controller";
 import { DEFAULTS } from "./../options";
@@ -221,9 +221,14 @@ function resolveParser(type: FormType, configs: IConfigs, options?: BaseFormOpti
 }
 
 function resolveParserOptions<T>(key: BonbonsToken<T>, configs: IConfigs, options: BaseFormOptions): KOAMiddleware {
-  (<any>options).enableTypes = [options.type];
+  console.log(options);
+  const { type, extends: extendsV } = options;
+  (<any>options).enableTypes = [type];
+  const etx = (<KOABodyParseOptions>options).extendTypes = {};
+  etx[(<string>type)] = extendsV || [];
   delete options.type;
-  // console.log(JSON.stringify(Object.assign(configs.get(key) || {}, options)));
+  delete options.extends;
+  console.log(JSON.stringify(Object.assign(configs.get(key) || {}, options)));
   return KOABodyParser(Object.assign(configs.get(key) || {}, options));
 }
 

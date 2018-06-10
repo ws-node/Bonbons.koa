@@ -19,7 +19,7 @@ module.exports = {
     modules: ["node_modules"],
     extensions: [".js", ".ts"],
     alias: {
-      "@Bonbons": path.resolve(__dirname, "./../@Bonbons.koa")
+      "@Bonbons": path.resolve(__dirname, "./../@Bonbons.koa/index")
     }
   },
   plugins: [

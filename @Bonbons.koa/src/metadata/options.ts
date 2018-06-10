@@ -25,6 +25,7 @@ export interface BaseFormOptions {
   strict?: boolean;
   type?: string;
   onerror?(error, ctx): any;
+  extends?: string[];
 }
 
 export interface JsonFormOptions extends BaseFormOptions {
