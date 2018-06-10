@@ -81,6 +81,7 @@ export class BonbonsServer implements IServer {
    * Set an option
    * ---
    * Set an option with format entry{@BonbonsEntry<T>}.
+   *
    * @description
    * @author Big Mogician
    * @template T
@@ -93,6 +94,7 @@ export class BonbonsServer implements IServer {
    * Set an option
    * ---
    * Set an option with token and provided value.
+   *
    * @description
    * @author Big Mogician
    * @template T
@@ -116,24 +118,29 @@ export class BonbonsServer implements IServer {
     return this;
   }
 
+  /**
+   * Set a controller
+   * ---
+   * * controller should be decorated by @Controller(...)
+   *
+   * @description
+   * @author Big Mogician
+   * @template T
+   * @param {*} ctlr
+   * @returns {BonbonsServer}
+   * @memberof BonbonsServer
+   */
   public controller<T extends IController>(ctlr: any): BonbonsServer {
     if (!ctlr || !(<T>ctlr).prototype.__valid) throw controllerError(ctlr);
     this._ctlrs.push(ctlr);
     return this;
   }
 
-  private injectable(provide: any, type: InjectScope): BonbonsServer;
-  private injectable(provide: any, classType: any, type?: InjectScope): BonbonsServer;
-  private injectable(provide: any, classType?: any, type?: InjectScope): BonbonsServer {
-    if (!provide) return this;
-    type = type || InjectScope.Singleton;
-    this._di.register(provide, classType || provide, type);
-    return this;
-  }
-
   /**
    * Set a scoped servics
    * ---
+   * * service should be decorated by @Injectable(...)
+   *
    * Set a scoped service with constructor.
    * All scoped services will be created new instance in different request pipe
    *
@@ -148,6 +155,8 @@ export class BonbonsServer implements IServer {
   /**
    * Set a scoped servics
    * ---
+   * * service should be decorated by @Injectable(...)
+   *
    * Set a scoped service with injectable token (such abstract class,
    * but not the typescript interface because there's no interface in
    * the javascript runtime) and implement service constructor. All
@@ -166,6 +175,8 @@ export class BonbonsServer implements IServer {
   /**
    * Set a scoped servics
    * ---
+   * * service should be decorated by @Injectable(...)
+   *
    * Set a scoped service with injectable token (such abstract class,
    * but not the typescript interface because there's no interface in
    * the javascript runtime) and implement service instance factory
@@ -185,6 +196,8 @@ export class BonbonsServer implements IServer {
   /**
    * Set a scoped servics
    * ---
+   * * service should be decorated by @Injectable(...)
+   *
    * Set a scoped service with injectable token (such abstract class,
    * but not the typescript interface because there's no interface in
    * the javascript runtime) and a well-created implement service instance.
@@ -203,12 +216,14 @@ export class BonbonsServer implements IServer {
    */
   public scoped<B, T>(token: InjectableToken<B>, srv: T): BonbonsServer;
   public scoped(...args: any[]): BonbonsServer {
-    return this.injectable(args[0], args[1], InjectScope.Scoped);
+    return this._injectable(args[0], args[1], InjectScope.Scoped);
   }
 
   /**
    * Set a singleton service
    * ---
+   * * service should be decorated by @Injectable(...)
+   *
    * Set a singleton service with constructor.
    * All singleton services will use unique instance throught different request pipes.
    *
@@ -223,6 +238,8 @@ export class BonbonsServer implements IServer {
   /**
    * Set a singleton service
    * ---
+   * * service should be decorated by @Injectable(...)
+   *
    * Set a singleton service with injectable token (such abstract class,
    * but not the typescript interface because there's no interface in
    * the javascript runtime) and implement service constructor.
@@ -242,6 +259,8 @@ export class BonbonsServer implements IServer {
   /**
    * Set a singleton service
    * ---
+   * * service should be decorated by @Injectable(...)
+   *
    * Set a singleton service with injectable token (such abstract class,
    * but not the typescript interface because there's no interface in
    * the javascript runtime) and implement service factory ( pure function with no side effects).
@@ -261,6 +280,8 @@ export class BonbonsServer implements IServer {
   /**
    * Set a singleton service
    * ---
+   * * service should be decorated by @Injectable(...)
+   *
    * Set a singleton service with injectable token (such abstract class,
    * but not the typescript interface because there's no interface in
    * the javascript runtime) and a well-created implement service instance.
@@ -277,7 +298,7 @@ export class BonbonsServer implements IServer {
    */
   public singleton<B, T>(token: InjectableToken<B>, srv: T): BonbonsServer;
   public singleton(...args: any[]): BonbonsServer {
-    return this.injectable(args[0], args[1], InjectScope.Singleton);
+    return this._injectable(args[0], args[1], InjectScope.Singleton);
   }
 
   public host(host?: string): BonbonsServer {
@@ -300,6 +321,15 @@ export class BonbonsServer implements IServer {
     this._useRouters();
     this._useMiddlewares();
     this._app.listen(3000);
+  }
+
+  private _injectable(provide: any, type: InjectScope): BonbonsServer;
+  private _injectable(provide: any, classType: any, type?: InjectScope): BonbonsServer;
+  private _injectable(provide: any, classType?: any, type?: InjectScope): BonbonsServer {
+    if (!provide) return this;
+    type = type || InjectScope.Singleton;
+    this._di.register(provide, classType || provide, type);
+    return this;
   }
 
   private _useRouters() {
