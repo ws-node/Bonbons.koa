@@ -63,7 +63,7 @@ export class MainController extends BaseController {
     }
 
     @Method("GET")
-    @Route("page", ["id", "select", "message"]) 
+    @Route("page?{id}&{select}&{message}") 
     // provide query params name list to open static query feature
     // example : localhost/api/page?id=123456&select=true&message=mmmmmm
     public AnotherGET(id:number, select:boolean, message): JsonResult {
@@ -133,7 +133,7 @@ export class SuperService {
 // it works!
 ```
 
-#### 4. Add middlewares or pipe for route or controller
+#### 4. Add middlewares or pipe for route or controller (not completed in koa version)
 ```JavaScript
 // 1 : Middlewares like express style
 // first create middleware in pure function format.
@@ -254,9 +254,9 @@ export const Authorize: IPipeFactory = createPipeBundle(TokenCheck);
     /*
     * All supported decorators :
     * @FromBody()   -   default : application/json
-    * @FormData()   -   default : multiple/form-data
+    * @FormData()   -   default : multiple/form-data (not completed in koa version)
     * @FromForm()   -   default : application/x-www-form-urlencoded
-    * @RawBody()   -   default : application/octet-stream
+    * @RawBody()   -   default : application/octet-stream (not completed in koa version)
     * @TextBody()   -   default : text/plain
     */
 
@@ -287,7 +287,7 @@ export class PostModel {
 
 // then try to create a post method:
     @Method("POST")
-    @Route("post/:id/details/:name", ["query", "find"])
+    @Route("post/:id/details/:name?{query}&{find}")
     @Middleware([], false)
     public POSTIndex( // you can access params, queryParams and form object by function-params-injection.
         id: number,
