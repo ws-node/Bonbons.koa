@@ -1,4 +1,4 @@
-import { Controller, Method, Route, JsonResult, BaseController, FromBody, FromForm } from "@Bonbons";
+import { Controller, Method, Route, JsonResult, BaseController, FromBody, FromForm, GET, POST } from "@Bonbons";
 import { TestService } from "../service/test";
 import { ABC } from "../service/imp";
 
@@ -7,6 +7,7 @@ export class TestController extends BaseController {
 
   constructor(private test: TestService, private imp: ABC) { super(); }
 
+  // @GET
   @Method("GET")
   @Route("/index/:abc/:def?{id}&{name}&{fuck}")
   public index(abc: string, def: string, id: number, name: string, fuck: string): JsonResult {
@@ -27,6 +28,7 @@ export class TestController extends BaseController {
     });
   }
 
+  // @POST
   @Method("POST")
   @Route("/postJSon")
   public SendMessage(@FromBody("application/javascript") params) {
