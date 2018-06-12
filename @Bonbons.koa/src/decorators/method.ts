@@ -16,6 +16,18 @@ export function reroute(reflect: IBonbonsControllerMetadata, propertyKey: string
  * @param {string[]} allowMethods
  */
 export function Method(...allowMethods: AllowMethod[]) {
+  return createMethodDecorator(...allowMethods);
+}
+
+export const GET = createMethodDecorator("GET");
+export const POST = createMethodDecorator("POST");
+export const PUT = createMethodDecorator("PUT");
+export const DELETE = createMethodDecorator("DELETE");
+export const PATCH = createMethodDecorator("PATCH");
+export const OPTIONS = createMethodDecorator("OPTIONS");
+export const HEAD = createMethodDecorator("HEAD");
+
+function createMethodDecorator(...allowMethods: AllowMethod[]) {
   return function <T extends IBonbonsController>(target: any, propertyKey: string) {
     const reflect = Reflection.GetControllerMetadata((<T>target));
     Reflection.SetControllerMetadata(target, reroute(reflect, propertyKey, { allowMethods }));
