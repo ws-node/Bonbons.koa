@@ -12,8 +12,12 @@ export function reroute(reflect: IBonbonsControllerMetadata, propertyKey: string
 }
 
 /**
- * Define a route method for the controller. default allowed method is 'GET'.
- * @param {string[]} allowMethods
+ *  Define a route method for the controller. default allowed method is 'GET'.
+ * @description
+ * @author Big Mogician
+ * @export
+ * @param {...AllowMethod[]} allowMethods
+ * @returns
  */
 export function Method(...allowMethods: AllowMethod[]) {
   return createMethodDecorator(...allowMethods);
@@ -33,12 +37,14 @@ function createMethodDecorator(...allowMethods: AllowMethod[]) {
     Reflection.SetControllerMetadata(target, reroute(reflect, propertyKey, { allowMethods }));
   };
 }
-
 /**
  * Define a method path for a route. absolute or relative path is supported. <nesessary>
  * Declare query params name to use static-typed variable.
+ * @description
+ * @author Big Mogician
+ * @export
  * @param {string} path
- * @param {string[]} query provide query params names to open static-injection for query params through method
+ * @returns
  */
 export function Route(path: string) {
   return function <T extends IBonbonsController>(target: any, propertyKey: string) {
