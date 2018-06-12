@@ -48,8 +48,10 @@ import { Context } from "../controller";
 import { DEFAULTS } from "./../options";
 import { FormType, IConstructor } from "./../metadata/base";
 import { BaseFormOptions } from "./../metadata/options";
+import { GLOBAL_LOGGER, BonbonsLogger, GlobalLogger } from "./../plugins/logger";
 
 export abstract class BaseApp {
+  protected readonly logger: GlobalLogger;
   protected get config(): BonbonsServerConfig { return this["_configs"]; }
   public start(): void { }
 }
@@ -335,6 +337,10 @@ export class BonbonsServer implements IServer {
     return this;
   }
 
+  public getConfigs() {
+    return this._configs.get(CONFIG_COLLECTION);
+  }
+
   /**
    * Start application
    * ---
@@ -398,6 +404,7 @@ export class BonbonsServer implements IServer {
   private _init() {
     this.option(CONFIG_COLLECTION, this._configs);
     this.option(DI_CONTAINER, new DIContainer());
+    this.option(GLOBAL_LOGGER, new BonbonsLogger());
     this.option(STATIC_TYPED_RESOLVER, TypedSerializer);
     this.option(JSON_RESULT_OPTIONS, DEFAULTS.jsonOptions);
     this.option(STRING_RESULT_OPTIONS, DEFAULTS.stringOption);
@@ -467,6 +474,7 @@ export class BonbonsServer implements IServer {
       const list = this._di.resolveDeps(constructor);
       const c = new constructor(...list);
       c._ctx = new Context(ctx);
+      c._cfgs = this._configs;
       const result: IResult = constructor.prototype[methodName].bind(c)(...this._parseFuncParams(constructor, ctx, route));
       resolveResult(ctx, result, this._configs);
     });

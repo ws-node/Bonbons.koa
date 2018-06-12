@@ -3,11 +3,30 @@ import { JsonResultOptions, StringResultOptions } from "../metadata/options";
 import { JsonResult } from "./result/json";
 import { StringResult } from "./result/string";
 import { Async } from "../metadata/controller";
+import { GlobalLogger, GLOBAL_LOGGER } from "./../plugins/logger";
+import { BonbonsConfigCollection } from "./../metadata/di";
 
 export abstract class BaseController {
 
+  private _logger: GlobalLogger;
+  /**
+   * Logger for all controllers
+   * ---
+   * It's the instance of GLOBAL_LOGGER what you set in configs.
+   *
+   * @description
+   * @readonly
+   * @protected
+   * @memberof BaseController
+   */
+  protected get logger() {
+    return this._logger || (this._logger = this.configs.get(GLOBAL_LOGGER));
+  }
+
   private _ctx: Context;
   public get context() { return this._ctx; }
+
+  protected get configs(): BonbonsConfigCollection { return this["_cfgs"]; }
 
   /**
    * Returns in JSON format, and supports the use of options to configure serialization behavior

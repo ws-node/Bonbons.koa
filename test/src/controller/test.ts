@@ -11,6 +11,7 @@ export class TestController extends BaseController {
   @Method("GET")
   @Route("/index/:abc/:def?{id}&{name}&{fuck}")
   public index(abc: string, def: string, id: number, name: string, fuck: string): JsonResult {
+    this.logger.debug("TestController", "index");
     return this.toJSON({
       query: this.context.request.querystring,
       moreMessage: " woshinidie " + fuck + " -- " + this.imp.show(),
@@ -32,12 +33,14 @@ export class TestController extends BaseController {
   @Method("POST")
   @Route("/postJSon")
   public SendMessage(@FromBody("application/javascript") params) {
+    this.logger.debug("TestController", "SendMessage");
     return this.toJSON(params);
   }
 
   @Method("POST")
   @Route("/postForm")
   public SendFormMessage(@FromForm({ formLimit: '50kb', }) params) {
+    this.logger.debug("TestController", "SendFormMessage");
     return this.toJSON(params);
   }
 

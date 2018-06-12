@@ -1,4 +1,4 @@
-import { BonbonsToken, BonbonsEntry } from "./di";
+import { BonbonsToken, BonbonsEntry, BonbonsConfigCollection } from "./di";
 import { KOAMiddleware } from "./source";
 import { IConstructor } from "./base";
 import { InjectableToken, ImplementToken, BonbonsDeptFactory, ImplementDIValue } from "./injectable";
@@ -218,5 +218,6 @@ export interface IBonbonsServer {
   singleton<T, M>(token: InjectableToken<T>, srv: M): IBonbonsServer;
   port(port?: number): IBonbonsServer;
   mode(mode: "development" | "production"): IBonbonsServer;
+  getConfigs(): BonbonsConfigCollection;
   start(): void;
 }
