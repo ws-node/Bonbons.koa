@@ -1,4 +1,4 @@
-import { Injectable } from "@Bonbons";
+import { Injectable, GlobalLogger } from "@Bonbons";
 import { TestService } from "./test";
 
 export abstract class ABC {
@@ -7,8 +7,13 @@ export abstract class ABC {
 
 @Injectable()
 export class ImplementService implements ABC {
-  constructor(private test: TestService) { }
+
+  constructor(private test: TestService, private logger: GlobalLogger) {
+    this.logger.info("imp-service", "imp service created.")
+  }
+
   show(): string {
     return "func you!";
   }
+
 }

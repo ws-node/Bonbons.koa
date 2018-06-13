@@ -14,7 +14,7 @@ export class DependencyQueue {
     const registerValue = realel || el;
     const { prototype } = <any>registerValue;
     const isConstructor = !!prototype;
-    const isFactory = TypeCheck.isFunction(prototype || {});
+    const isFactory = TypeCheck.isFunction(registerValue || {});
     scope = scope || InjectScope.Singleton;
     this.queue.push({
       el, realel: <any>registerValue, deps,

@@ -1,9 +1,10 @@
 import { createToken } from "../di";
-import { IConstructor } from "../metadata/base";
+import { IConstructor, IENV } from "../metadata/base";
 
 export const GLOBAL_LOGGER = createToken<IConstructor<GlobalLogger>>("GLOBAL_LOGGER");
 
 export abstract class GlobalLogger {
+  constructor(env: IENV) { }
   abstract debug(...msgs: any[]): void;
   abstract info(...msgs: any[]): void;
   abstract warn(...msgs: any[]): void;
@@ -37,7 +38,10 @@ function createMsg(msg: any, upcase = false): string {
 
 export class BonbonsLogger implements GlobalLogger {
 
+  constructor(private env: IENV) { }
+
   private log(type: "ERROR" | "WARN" | "INFO" | "DEBUG", ...msgs: any[]): void {
+    if (this.env.mode === "production" && type === "DEBUG") return;
     if (msgs.length === 0) return;
     let logmsg: string;
     let [main, summary, details, ...mores] = msgs;

@@ -24,7 +24,8 @@ import {
   JSON_FORM_OPTIONS,
   BODY_PARSE_OPTIONS,
   TEXT_FORM_OPTIONS,
-  URL_FORM_OPTIONS
+  URL_FORM_OPTIONS,
+  ENV_MODE
 } from "../di";
 import { BonbonsDeptFactory as InjectFactory, InjectDIToken, ImplementDIValue } from "./../metadata/injectable";
 import {
@@ -86,8 +87,8 @@ export class BonbonsServer implements IServer {
   private _isDev = true;
 
   constructor(config?: BonbonsServerConfig) {
-    this._init();
     this._readConfig(config);
+    this._init();
   }
 
   public mode(mode: "development" | "production"): BonbonsServer {
@@ -376,9 +377,10 @@ export class BonbonsServer implements IServer {
   }
 
   private _initLogger() {
-    const Logger = this._configs.get(GLOBAL_LOGGER);
-    this._logger = new Logger();
-    this.singleton(GlobalLogger, Injectable()(Logger));
+    const Logger = Injectable()(this._configs.get(GLOBAL_LOGGER));
+    const env = this._configs.get(ENV_MODE);
+    this._logger = new Logger(env);
+    this.singleton(GlobalLogger, () => this._logger);
     this._logger.debug("core", this._initLogger.name, `logger init : [ type : ${Logger.name} ].`);
   }
 
@@ -417,6 +419,7 @@ export class BonbonsServer implements IServer {
   }
 
   private _init() {
+    this.option(ENV_MODE, { mode: this._isDev ? "development" : "production" });
     this.option(CONFIG_COLLECTION, this._configs);
     this.option(DI_CONTAINER, new DIContainer());
     this.option(GLOBAL_LOGGER, BonbonsLogger);
