@@ -1,12 +1,13 @@
 import { createToken } from "../di";
+import { IConstructor } from "../metadata/base";
 
-export const GLOBAL_LOGGER = createToken<GlobalLogger>("GLOBAL_LOGGER");
+export const GLOBAL_LOGGER = createToken<IConstructor<GlobalLogger>>("GLOBAL_LOGGER");
 
-export interface GlobalLogger {
-  debug(...msgs: any[]): void;
-  info(...msgs: any[]): void;
-  warn(...msgs: any[]): void;
-  error(...msgs: any[]): void;
+export abstract class GlobalLogger {
+  abstract debug(...msgs: any[]): void;
+  abstract info(...msgs: any[]): void;
+  abstract warn(...msgs: any[]): void;
+  abstract error(...msgs: any[]): void;
 }
 
 const COLORS = {

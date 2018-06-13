@@ -21,6 +21,7 @@ export function Controller(config?: string | IControllerConfig): ControllerDecor
     prototype.__valid = true;
     const reflect = Reflection.GetControllerMetadata(prototype);
     Reflection.SetControllerMetadata(prototype, registerCompelete(registerPrefix(reflect, config)));
+    return target;
   };
 }
 

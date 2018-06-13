@@ -49,6 +49,7 @@ import { DEFAULTS } from "./../options";
 import { FormType, IConstructor } from "./../metadata/base";
 import { BaseFormOptions } from "./../metadata/options";
 import { GLOBAL_LOGGER, BonbonsLogger, GlobalLogger } from "./../plugins/logger";
+import { Injectable } from "./../decorators";
 
 export abstract class BaseApp {
   protected readonly logger: GlobalLogger;
@@ -73,6 +74,7 @@ export class BonbonsServer implements IServer {
    * @memberof BonbonsServer
    */
   private _di!: IDIContainer;
+  private _logger!: GlobalLogger;
 
   private _app = new KOA();
   private _ctlrs: IConstructor<any>[] = [];
@@ -351,6 +353,8 @@ export class BonbonsServer implements IServer {
    */
   public start(): void {
     this._di = this._configs.get(DI_CONTAINER);
+    this._initLogger();
+    this._logger.debug("core", this.start.name, "start to create application.");
     this._initDIContainer();
     this._useRouters();
     this._useMiddlewares();
@@ -371,10 +375,21 @@ export class BonbonsServer implements IServer {
     delete this._clearServer;
   }
 
+  private _initLogger() {
+    const Logger = this._configs.get(GLOBAL_LOGGER);
+    this._logger = new Logger();
+    this.singleton(GlobalLogger, Injectable()(Logger));
+    this._logger.debug("core", this._initLogger.name, `logger init : [ type : ${Logger.name} ].`);
+  }
+
   private _initDIContainer() {
+    this._logger.debug("core", this._initDIContainer.name, "init DI container.");
+    this._logger.debug("core", this._initDIContainer.name, `scoped inject entry count : [ ${this._scoped.length} ].`);
     this._scoped.forEach(([tk, imp]) => this._injectable_final(tk, imp, InjectScope.Scoped));
+    this._logger.debug("core", this._initDIContainer.name, `singleton inject entry count : [ ${this._singleton.length} ].`);
     this._singleton.forEach(([tk, imp]) => this._injectable_final(tk, imp, InjectScope.Singleton));
     this._di.complete();
+    this._logger.debug("core", this._initDIContainer.name, `complete with di container : [ total injectable count : ${this._di.count} ].`);
   }
 
   private _readConfig(config?: BonbonsServerConfig) {
@@ -404,7 +419,7 @@ export class BonbonsServer implements IServer {
   private _init() {
     this.option(CONFIG_COLLECTION, this._configs);
     this.option(DI_CONTAINER, new DIContainer());
-    this.option(GLOBAL_LOGGER, new BonbonsLogger());
+    this.option(GLOBAL_LOGGER, BonbonsLogger);
     this.option(STATIC_TYPED_RESOLVER, TypedSerializer);
     this.option(JSON_RESULT_OPTIONS, DEFAULTS.jsonOptions);
     this.option(STRING_RESULT_OPTIONS, DEFAULTS.stringOption);
@@ -475,6 +490,7 @@ export class BonbonsServer implements IServer {
       const c = new constructor(...list);
       c._ctx = new Context(ctx);
       c._cfgs = this._configs;
+      c._injtor = this._di;
       const result: IResult = constructor.prototype[methodName].bind(c)(...this._parseFuncParams(constructor, ctx, route));
       resolveResult(ctx, result, this._configs);
     });

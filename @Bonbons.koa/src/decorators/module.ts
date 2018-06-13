@@ -1,7 +1,8 @@
 import { BonbonsServerConfig } from "../metadata/core";
 import { IConstructor } from "../metadata/base";
 import { BonbonsServer, BaseApp } from "../core/server";
-import { GLOBAL_LOGGER } from "./../plugins/logger";
+import { GLOBAL_LOGGER, GlobalLogger } from "./../plugins/logger";
+import { DI_CONTAINER } from "./../di";
 
 /**
  * Create a Bonbons.koa App server
@@ -18,8 +19,10 @@ export function BonbonsApp(config: BonbonsServerConfig) {
     target.prototype._configs = config;
     target.prototype.start = function () {
       const app = new BonbonsServer(config);
-      this.logger = app.getConfigs().get(GLOBAL_LOGGER);
       app.start();
+      const conf = app.getConfigs();
+      const di = conf.get(DI_CONTAINER);
+      this.logger = di.get(GlobalLogger);
       theStartup && theStartup.bind(this)();
     };
   };

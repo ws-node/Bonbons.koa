@@ -25,6 +25,7 @@ export interface BonbonsDIEntry {
 }
 
 export interface BonbonsDIContainer {
+  count: number;
   get<T>(token: InjectDIToken): T;
   register(selector: InjectDIToken, value: any, scope: InjectScope);
   resolveDeps<T>(value: IConstructor<T>): any[];

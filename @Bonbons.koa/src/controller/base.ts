@@ -4,7 +4,7 @@ import { JsonResult } from "./result/json";
 import { StringResult } from "./result/string";
 import { Async } from "../metadata/controller";
 import { GlobalLogger, GLOBAL_LOGGER } from "./../plugins/logger";
-import { BonbonsConfigCollection } from "./../metadata/di";
+import { BonbonsConfigCollection, BonbonsDIContainer } from "./../metadata/di";
 
 export abstract class BaseController {
 
@@ -20,13 +20,14 @@ export abstract class BaseController {
    * @memberof BaseController
    */
   protected get logger() {
-    return this._logger || (this._logger = this.configs.get(GLOBAL_LOGGER));
+    return this._logger || (this._logger = this.injector.get(GlobalLogger));
   }
 
   private _ctx: Context;
   public get context() { return this._ctx; }
 
   protected get configs(): BonbonsConfigCollection { return this["_cfgs"]; }
+  protected get injector(): BonbonsDIContainer { return this["_injtor"]; }
 
   /**
    * Returns in JSON format, and supports the use of options to configure serialization behavior
