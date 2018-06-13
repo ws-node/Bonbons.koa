@@ -3,6 +3,7 @@ import { TestService } from "./src/service/test";
 import { ABC, ImplementService } from "./src/service/imp";
 import { valueTest, TOKEN_TEST } from "./src/config/test";
 import { TestController } from "./src/controller/test";
+import { MoreController } from "./src/controller/more";
 
 // Bonbons.New
 //   .scoped(ImplementService)
@@ -18,7 +19,10 @@ import { TestController } from "./src/controller/test";
 @BonbonsApp({
   mode: "development",
   port: 3000,
-  controller: [TestController],
+  controller: [
+    TestController,
+    MoreController
+  ],
   scoped: [
     ImplementService,
     { token: ABC, implement: ImplementService },
