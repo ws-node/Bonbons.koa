@@ -1,5 +1,6 @@
 import { createToken } from "../di";
 import { IConstructor, IENV } from "../metadata/base";
+import { Colors, setColor } from "../utils/console-color";
 
 export const GLOBAL_LOGGER = createToken<IConstructor<GlobalLogger>>("GLOBAL_LOGGER");
 
@@ -12,31 +13,32 @@ export abstract class GlobalLogger {
 }
 
 export const COLORS = {
-  reset: "\x1b[0m",
-  red: "\x1b[31m\x1b[1m",
-  green: "\x1b[32m",
-  blue: "\x1b[34m",
-  yellow: "\x1b[33m",
-  cyan: "\x1b[36m",
-  magenta: "\x1b[35m",
-  white: "\x1b[37m",
-  section(name: string, value: string) {
-    return `${COLORS[name]}${value}${COLORS.reset}`;
-  }
+  ...Colors
+};
+
+export const ColorsHelper = {
+  setColor,
+  green(value: any) { return setColor("green", value); },
+  cyan(value: any) { return setColor("cyan", value); },
+  red(value: any) { return setColor("red", value); },
+  blue(value: any) { return setColor("blue", value); },
+  yellow(value: any) { return setColor("yellow", value); },
+  magenta(value: any) { return setColor("magenta", value); },
+  white(value: any) { return setColor("white", value); }
 };
 
 function createStamp(date?: Date): string {
-  return `${COLORS.cyan}[${(date || new Date()).toLocaleTimeString()}]${COLORS.reset}-`;
+  return `[${ColorsHelper.cyan((date || new Date()).toLocaleTimeString())}]-`;
 }
 
 function createType(type: "ERROR" | "WARN" | "INFO" | "DEBUG"): string {
-  const color = type === "ERROR" ? COLORS.red : type === "WARN" ? COLORS.yellow : type === "INFO" ? COLORS.blue : COLORS.green;
-  return `${color}[${type}]${COLORS.reset}${COLORS.white}-`;
+  const color = type === "ERROR" ? "red" : type === "WARN" ? "yellow" : type === "INFO" ? "blue" : "green";
+  return `[${ColorsHelper[color](type)}]-`;
 }
 
 function createMsg(msg: any, upcase = false): string {
   const c: string = (msg || "").toString();
-  return `${COLORS.magenta}[${upcase ? c.toUpperCase() : c}]${COLORS.reset}-`;
+  return `[${ColorsHelper.magenta(upcase ? c.toUpperCase() : c)}]-`;
 }
 
 export class BonbonsLogger implements GlobalLogger {

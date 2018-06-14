@@ -49,10 +49,10 @@ import { Context } from "../controller";
 import { DEFAULTS } from "./../options";
 import { FormType, IConstructor } from "./../metadata/base";
 import { BaseFormOptions } from "./../metadata/options";
-import { GLOBAL_LOGGER, BonbonsLogger, GlobalLogger, COLORS } from "./../plugins/logger";
+import { GLOBAL_LOGGER, BonbonsLogger, GlobalLogger, COLORS, ColorsHelper } from "./../plugins/logger";
 import { Injectable } from "./../decorators";
 
-const { section } = COLORS;
+const { green, cyan, red, blue, magenta, yellow } = ColorsHelper;
 
 export abstract class BaseApp {
   protected readonly logger: GlobalLogger;
@@ -421,18 +421,18 @@ export class BonbonsServer implements IServer {
     const env = this._configs.get(ENV_MODE);
     this._logger = new Logger(env);
     this.singleton(GlobalLogger, () => this._logger);
-    this._logger.debug("core", this._initLogger.name, `logger init : [ type : ${section("green", Logger.name)} ].`);
+    this._logger.debug("core", this._initLogger.name, `logger init : [ type : ${green(Logger.name)} ].`);
     this._logger.debug("core", this._initLogger.name, "-----------------------");
   }
 
   private _initDIContainer() {
     this._logger.debug("core", this._initDIContainer.name, "init DI container.");
-    this._logger.debug("core", this._initDIContainer.name, `scoped inject entry count : [ ${COLORS.green}${this._scoped.length}${COLORS.reset} ].`);
+    this._logger.debug("core", this._initDIContainer.name, `scoped inject entry count : [ ${green(this._scoped.length)} ].`);
     this._scoped.forEach(([tk, imp]) => this._injectable_final(tk, imp, InjectScope.Scoped));
-    this._logger.debug("core", this._initDIContainer.name, `singleton inject entry count : [ ${COLORS.green}${this._singleton.length}${COLORS.reset} ].`);
+    this._logger.debug("core", this._initDIContainer.name, `singleton inject entry count : [ ${green(this._singleton.length)} ].`);
     this._singleton.forEach(([tk, imp]) => this._injectable_final(tk, imp, InjectScope.Singleton));
     this._di.complete();
-    this._logger.debug("core", this._initDIContainer.name, `complete with di container : [ total injectable count : ${COLORS.green}${this._di.count}${COLORS.reset} ].`);
+    this._logger.debug("core", this._initDIContainer.name, `complete with di container : [ total injectable count : ${green(this._di.count)} ].`);
     this._logger.debug("core", this._initDIContainer.name, "-----------------------");
   }
 
@@ -457,20 +457,20 @@ export class BonbonsServer implements IServer {
   }
 
   private _useRouters() {
-    this._logger.debug("core", this._useRouters.name, `init app routers : [ router modules count : ${COLORS.green}${this._ctlrs.length}${COLORS.reset} ]`);
+    this._logger.debug("core", this._useRouters.name, `init app routers : [ router modules count : ${green(this._ctlrs.length)} ]`);
     const mainRouter = new KOARouter();
     this._ctlrs.forEach(controllerClass => {
       const ct = new controllerClass();
       const { router } = <ControllerMetadata>(ct.getConfig && ct.getConfig());
       const thisRouter = new KOARouter({ prefix: router.prefix as string });
-      this._logger.debug("core", this._useRouters.name, `bind controller module : [ name : ${COLORS.yellow}${controllerClass.name}${COLORS.reset} # routes count : ${COLORS.green}${Object.keys(router.routes).length}${COLORS.reset} ]`);
+      this._logger.debug("core", this._useRouters.name, `bind controller module : [ name : ${yellow(controllerClass.name)} # routes count : ${COLORS.green}${Object.keys(router.routes).length}${COLORS.reset} ]`);
       Object.keys(router.routes).forEach(methodName => {
         const item = router.routes[methodName];
         const { path, allowMethods } = item;
         if (!allowMethods) throw invalidOperation("invalid method, you must set a HTTP method for a route.");
         allowMethods.forEach(eachMethod => {
           if (!path) return;
-          this._logger.debug("core", this._useRouters.name, `bind route : [ method : ${COLORS.green}${item.allowMethods}${COLORS.reset} # path : ${COLORS.blue}${item.path}${COLORS.reset} # params : ${COLORS.cyan}${item.funcParams.map(i => i.key).join(",") || "-"}${COLORS.reset} ]`);
+          this._logger.debug("core", this._useRouters.name, `bind route : [ method : ${green(item.allowMethods)} # path : ${blue(item.path)} # params : ${cyan(item.funcParams.map(i => i.key).join(",") || "-")} ]`);
           const middlewares = [];
           this._selectFormParser(item, middlewares);
           this._decideFinalStep(item, middlewares, controllerClass, methodName);
