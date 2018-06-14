@@ -1,3 +1,5 @@
+import { KOARequest, KOAResponse } from "./source";
+
 export interface IENV {
   mode?: "development" | "production";
   trace?: boolean;
@@ -25,4 +27,11 @@ export enum FormType {
   UrlEncoded = "url",
   TextPlain = "text",
   Raw = "raw"
+}
+
+export type Async<T> = Promise<T>;
+
+export interface IBonbonsContext {
+  request: KOARequest;
+  response: KOAResponse;
 }

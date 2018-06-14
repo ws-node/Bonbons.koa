@@ -2,13 +2,11 @@ import { Context } from "./context";
 import { JsonResultOptions, StringResultOptions } from "../metadata/options";
 import { JsonResult } from "./result/json";
 import { StringResult } from "./result/string";
-import { Async } from "../metadata/controller";
-import { GlobalLogger, GLOBAL_LOGGER } from "./../plugins/logger";
-import { BonbonsConfigCollection, BonbonsDIContainer } from "./../metadata/di";
+import { Async, IBonbonsContext as IContext } from "../metadata/base";
 
 export abstract class BaseController {
 
-  private readonly $$ctx!: Context;
+  private readonly $$ctx!: IContext;
   public get context() { return this.$$ctx; }
 
   /**

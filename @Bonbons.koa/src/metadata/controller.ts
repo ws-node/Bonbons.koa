@@ -1,4 +1,4 @@
-import { IConstructor, FormType } from "./base";
+import { IConstructor, FormType, Async } from "./base";
 import { ConfigsCollection } from "./di";
 import { BaseFormOptions } from "./../metadata/options";
 
@@ -43,7 +43,5 @@ export type IController = IConstructor<IBonbonsController>;
 export interface IBonbonsMethodResult {
   toString(configs: ConfigsCollection): string;
 }
-
-export type Async<T> = Promise<T>;
 
 export type UnionBonbonsResult = IBonbonsMethodResult | Async<IBonbonsMethodResult> | string;

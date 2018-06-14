@@ -14,3 +14,5 @@ export const CTOR_META_KEY = Symbol("__bonbons:ctor_meta_key");
  * Record service's runtime reflection metadata
  */
 export const INJECTABLE_META_KEY = Symbol("__bonbons:injectable_meta_key");
+
+export const PIPE_META_KEY = Symbol("__bonbons:pipe_meta_key");

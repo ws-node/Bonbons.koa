@@ -1,5 +1,6 @@
-import { PARAMS_META_KEY, CTOR_META_KEY } from "../metadata/reflect";
+import { PARAMS_META_KEY, CTOR_META_KEY, PIPE_META_KEY } from "../metadata/reflect";
 import { IBonbonsControllerMetadata } from "../metadata/controller";
+import { IBonbonsPipeMetadata } from "../metadata/pipe";
 
 export function getDependencies(target): any[] {
   return Reflect.getMetadata(PARAMS_META_KEY, target) || [];
@@ -17,6 +18,14 @@ export class ReflectionConstructor {
 
   public SetControllerMetadata(target: any, meta: IBonbonsControllerMetadata) {
     Reflect.defineMetadata(CTOR_META_KEY, meta, target);
+  }
+
+  public GetPipeMetadata(target: any): IBonbonsPipeMetadata {
+    return Reflect.getMetadata(PIPE_META_KEY, target) || { params: {}, keyMatch: [] };
+  }
+
+  public SetPipeMetadata(target: any, meta: IBonbonsPipeMetadata) {
+    Reflect.defineMetadata(PIPE_META_KEY, meta, target);
   }
 
 }
