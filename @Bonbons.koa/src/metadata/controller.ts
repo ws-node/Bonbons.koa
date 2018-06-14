@@ -1,5 +1,5 @@
 import { IConstructor, FormType } from "./base";
-import { BonbonsConfigCollection } from "./di";
+import { ConfigsCollection } from "./di";
 import { BaseFormOptions } from "./../metadata/options";
 
 export type AllowMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "OPTIONS" | "HEAD";
@@ -41,7 +41,7 @@ export interface IBonbonsController {
 export type IController = IConstructor<IBonbonsController>;
 
 export interface IBonbonsMethodResult {
-  toString(configs: BonbonsConfigCollection): string;
+  toString(configs: ConfigsCollection): string;
 }
 
 export type Async<T> = Promise<T>;

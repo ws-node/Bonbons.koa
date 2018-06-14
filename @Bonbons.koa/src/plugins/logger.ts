@@ -13,6 +13,8 @@ export abstract class GlobalLogger {
   abstract error(...msgs: any[]): void;
 }
 
+export const Logger = GlobalLogger;
+
 export enum LogLevel {
   TRACE = 0,
   DEBUG = 1,

@@ -34,6 +34,7 @@ import {
   BonbonsConfigCollection as IConfigs,
   BonbonsDIContainer as IDIContainer,
   BonbonsToken,
+  ConfigsCollection,
 } from "../metadata/di";
 import { invalidOperation, invalidParam, TypeCheck, TypedSerializer } from "../utils";
 import {
@@ -51,6 +52,8 @@ import { FormType, IConstructor } from "./../metadata/base";
 import { BaseFormOptions } from "./../metadata/options";
 import { GLOBAL_LOGGER, BonbonsLogger, GlobalLogger, COLORS, ColorsHelper } from "./../plugins/logger";
 import { Injectable } from "./../decorators";
+import { InjectService } from "../plugins/injector";
+import { ConfigService } from "../plugins/configs";
 
 const { green, cyan, red, blue, magenta, yellow } = ColorsHelper;
 
@@ -356,8 +359,8 @@ export class BonbonsServer implements IServer {
    * @memberof BonbonsServer
    */
   public start(): void {
-    this._di = this._configs.get(DI_CONTAINER);
     this._initLogger();
+    this._initDLookup();
     this._initDIContainer();
     this._useRouters();
     this._useMiddlewares();
@@ -430,6 +433,12 @@ export class BonbonsServer implements IServer {
     this._logger.debug("core", this._initLogger.name, "-----------------------");
   }
 
+  private _initDLookup() {
+    this._di = this._configs.get(DI_CONTAINER);
+    this.singleton(InjectService, () => ({ get: this._di.get.bind(this._di) }));
+    this.singleton(ConfigService, () => ({ get: this._configs.get.bind(this._configs) }));
+  }
+
   private _initDIContainer() {
     this._logger.debug("core", this._initDIContainer.name, "init DI container.");
     this._logger.trace("core", this._initDIContainer.name, `scoped inject entry count : [ ${green(this._scoped.length)} ].`);
@@ -465,8 +474,8 @@ export class BonbonsServer implements IServer {
     this._logger.debug("core", this._useRouters.name, `start build routers : [ count -> ${green(this._ctlrs.length)} ]`);
     const mainRouter = new KOARouter();
     this._ctlrs.forEach(controllerClass => {
-      const ct = new controllerClass();
-      const { router } = <ControllerMetadata>(ct.getConfig && ct.getConfig());
+      const proto = controllerClass.prototype;
+      const { router } = <ControllerMetadata>(proto.getConfig && proto.getConfig());
       const thisRouter = new KOARouter({ prefix: router.prefix as string });
       this._logger.debug("core", this._useRouters.name, `register ${yellow(controllerClass.name)} : [ @prefix -> ${cyan(router.prefix)} @methods -> ${COLORS.green}${Object.keys(router.routes).length}${COLORS.reset} ]`);
       Object.keys(router.routes).forEach(methodName => {
@@ -503,11 +512,9 @@ export class BonbonsServer implements IServer {
     middlewares.push((ctx) => {
       const list = this._di.resolveDeps(constructor);
       const c = new constructor(...list);
-      c._ctx = new Context(ctx);
-      c._cfgs = this._configs;
-      c._injtor = this._di;
+      c.$$ctx = new Context(ctx);
       const result: IResult = constructor.prototype[methodName].bind(c)(...this._parseFuncParams(constructor, ctx, route));
-      resolveResult(ctx, result, this._configs);
+      resolveResult(ctx, result, this._di.get(ConfigService));
     });
   }
 
@@ -602,7 +609,7 @@ function controllerError(ctlr: any) {
   return invalidParam("Controller to be add is invalid. You can only add the controller been decorated by @Controller(...).", { className: ctlr && ctlr.name });
 }
 
-function resolveResult(ctx: KOAContext, result: IResult, configs: IConfigs, isSync?: boolean) {
+function resolveResult(ctx: KOAContext, result: IResult, configs: ConfigsCollection, isSync?: boolean) {
   const isAsync = isSync === undefined ? TypeCheck.isFromCustomClass(result || {}, Promise) : !isSync;
   if (isAsync) {
     (<Promise<SyncResult>>result)

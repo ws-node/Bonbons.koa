@@ -8,26 +8,8 @@ import { BonbonsConfigCollection, BonbonsDIContainer } from "./../metadata/di";
 
 export abstract class BaseController {
 
-  private _logger: GlobalLogger;
-  /**
-   * Logger for all controllers
-   * ---
-   * It's the instance of GLOBAL_LOGGER what you set in configs.
-   *
-   * @description
-   * @readonly
-   * @protected
-   * @memberof BaseController
-   */
-  protected get logger() {
-    return this._logger || (this._logger = this.injector.get(GlobalLogger));
-  }
-
-  private _ctx: Context;
-  public get context() { return this._ctx; }
-
-  protected get configs(): BonbonsConfigCollection { return this["_cfgs"]; }
-  protected get injector(): BonbonsDIContainer { return this["_injtor"]; }
+  private readonly $$ctx!: Context;
+  public get context() { return this.$$ctx; }
 
   /**
    * Returns in JSON format, and supports the use of options to configure serialization behavior

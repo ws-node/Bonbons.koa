@@ -9,7 +9,7 @@ export abstract class ABC {
 export class ImplementService implements ABC {
 
   constructor(private test: TestService, private logger: GlobalLogger) {
-    this.logger.info("imp-service", "imp service created.")
+    this.logger.info("imp-service", "imp service created.");
   }
 
   show(): string {

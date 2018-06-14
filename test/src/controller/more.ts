@@ -1,11 +1,16 @@
-import { Controller, Method, Route, JsonResult, BaseController, FromBody, FromForm, GET, POST } from "@Bonbons";
+import { Controller, Method, Route, JsonResult, BaseController, FromBody, FromForm, GET, POST, GlobalLogger } from "@Bonbons";
 import { TestService } from "../service/test";
 import { ABC } from "../service/imp";
 
 @Controller("more")
 export class MoreController extends BaseController {
 
-  constructor(private test: TestService, private imp: ABC) { super(); }
+  constructor(
+    private logger: GlobalLogger,
+    private test: TestService,
+    private imp: ABC) {
+    super();
+  }
 
   // @GET
   @Method("GET")
