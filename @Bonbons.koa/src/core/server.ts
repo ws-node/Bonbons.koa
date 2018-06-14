@@ -89,6 +89,7 @@ export class BonbonsServer implements IServer {
   private _isDev = true;
 
   constructor(config?: BonbonsServerConfig) {
+    this._earlyInit();
     this._readConfig(config);
     this._init();
   }
@@ -364,7 +365,7 @@ export class BonbonsServer implements IServer {
     if (!this._isDev) {
       this._clearServer();
     }
-    // console.log(this);
+    // console.log(this._configs);
   }
 
   private _clearServer = () => {
@@ -395,14 +396,17 @@ export class BonbonsServer implements IServer {
         if (item instanceof Array) {
           this.option(item[0], item[1]);
         } else {
-          this.option(item);
+          this.option(item.token, item.value);
         }
       });
     }
   }
 
-  private _init() {
+  private _earlyInit() {
     this.option(ENV_MODE, { mode: this._isDev ? "development" : "production", trace: true });
+  }
+
+  private _init() {
     this.option(CONFIG_COLLECTION, this._configs);
     this.option(DI_CONTAINER, new DIContainer());
     this.option(GLOBAL_LOGGER, BonbonsLogger);
@@ -419,6 +423,7 @@ export class BonbonsServer implements IServer {
   private _initLogger() {
     const Logger = Injectable()(this._configs.get(GLOBAL_LOGGER));
     const env = this._configs.get(ENV_MODE);
+    console.log(env);
     this._logger = new Logger(env);
     this.singleton(GlobalLogger, () => this._logger);
     this._logger.debug("core", this._initLogger.name, `logger init : [ type -> ${green(Logger.name)} ].`);

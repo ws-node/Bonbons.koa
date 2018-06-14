@@ -70,7 +70,8 @@ export class BonbonsLogger implements GlobalLogger {
   constructor(private env: IENV) { }
 
   private log(type: LogLevel, ...msgs: any[]): void {
-    if (this.env.mode === "production" && (type === LogLevel.DEBUG || type === LogLevel.TRACE)) return;
+    if (this.env.mode === "production") return;
+    if (!this.env.trace && type === LogLevel.TRACE) return;
     if (msgs.length === 0) return;
     let logmsg: string;
     let [main, summary, details, ...mores] = msgs;

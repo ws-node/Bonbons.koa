@@ -1,4 +1,4 @@
-import { Bonbons, JSON_RESULT_OPTIONS, JsonResultResolvers, BonbonsApp, BaseApp } from "@Bonbons";
+import { Bonbons, JSON_RESULT_OPTIONS, JsonResultResolvers, BonbonsApp, BaseApp, ENV_MODE } from "@Bonbons";
 import { TestService } from "./src/service/test";
 import { ABC, ImplementService } from "./src/service/imp";
 import { valueTest, TOKEN_TEST } from "./src/config/test";
@@ -33,6 +33,7 @@ import { MoreController } from "./src/controller/more";
   singleton: [TestService],
   options: [
     { token: TOKEN_TEST, value: valueTest },
+    { token: ENV_MODE, value: { trace: false } },
     [JSON_RESULT_OPTIONS, { staticType: true, resolver: JsonResultResolvers.decamelize }]
   ]
 })
