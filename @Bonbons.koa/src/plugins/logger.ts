@@ -6,10 +6,20 @@ export const GLOBAL_LOGGER = createToken<IConstructor<GlobalLogger>>("GLOBAL_LOG
 
 export abstract class GlobalLogger {
   constructor(env: IENV) { }
+  abstract trace(...msgs: any[]): void;
   abstract debug(...msgs: any[]): void;
   abstract info(...msgs: any[]): void;
   abstract warn(...msgs: any[]): void;
   abstract error(...msgs: any[]): void;
+}
+
+export enum LogLevel {
+  TRACE = 0,
+  DEBUG = 1,
+  INFO = 2,
+  WARN = 3,
+  ERROR = 4,
+  FATAL = 5
 }
 
 export const COLORS = {
@@ -31,22 +41,36 @@ function createStamp(date?: Date): string {
   return `[${ColorsHelper.cyan((date || new Date()).toLocaleTimeString())}]-`;
 }
 
-function createType(type: "ERROR" | "WARN" | "INFO" | "DEBUG"): string {
-  const color = type === "ERROR" ? "red" : type === "WARN" ? "yellow" : type === "INFO" ? "blue" : "green";
-  return `[${ColorsHelper[color](type)}]-`;
+function createType(type: LogLevel): string {
+  let color: string;
+  let tps: string;
+  switch (type) {
+    case LogLevel.FATAL:
+    case LogLevel.ERROR: [color, tps] = ["red", "ERROR"]; break;
+    case LogLevel.WARN: [color, tps] = ["yellow", "WARN"]; break;
+    case LogLevel.INFO: [color, tps] = ["blue", "INFO"]; break;
+    case LogLevel.DEBUG: [color, tps] = ["green", "DEBUG"]; break;
+    default: [color, tps] = ["white", "TRACE"];
+  }
+  return `[${ColorsHelper[color](tps)}]-`;
 }
 
-function createMsg(msg: any, upcase = false): string {
+function createModule(msg: any, upcase = false): string {
   const c: string = (msg || "").toString();
   return `[${ColorsHelper.magenta(upcase ? c.toUpperCase() : c)}]-`;
+}
+
+function createMethod(msg: any, upcase = false): string {
+  const c: string = (msg || "").toString();
+  return `[${ColorsHelper.blue(upcase ? c.toUpperCase() : c)}]-`;
 }
 
 export class BonbonsLogger implements GlobalLogger {
 
   constructor(private env: IENV) { }
 
-  private log(type: "ERROR" | "WARN" | "INFO" | "DEBUG", ...msgs: any[]): void {
-    if (this.env.mode === "production" && type === "DEBUG") return;
+  private log(type: LogLevel, ...msgs: any[]): void {
+    if (this.env.mode === "production" && (type === LogLevel.DEBUG || type === LogLevel.TRACE)) return;
     if (msgs.length === 0) return;
     let logmsg: string;
     let [main, summary, details, ...mores] = msgs;
@@ -59,24 +83,28 @@ export class BonbonsLogger implements GlobalLogger {
     }
     [main, summary, details, ...mores] = tMsgs;
     const more = (mores || []).map(i => `-------------\n${JSON.stringify(i)}`);
-    logmsg = `${createStamp()}${createType(type)}${createMsg(main, true)}${createMsg(summary)} ${details} ${more.length > 0 ? `\n--------------\nMore: \n${more}` : ""}`;
+    logmsg = `${createStamp()}${createType(type)}${createModule(main, true)}${createMethod(summary)} ${details} ${more.length > 0 ? `\n--------------\nMore: \n${more}` : ""}`;
     console.log(logmsg);
   }
 
+  trace(...msgs: any[]): void {
+    return this.log(LogLevel.TRACE, ...msgs);
+  }
+
   debug(...msgs: any[]): void {
-    return this.log("DEBUG", ...msgs);
+    return this.log(LogLevel.DEBUG, ...msgs);
   }
 
   info(...msgs: any[]): void {
-    return this.log("INFO", ...msgs);
+    return this.log(LogLevel.INFO, ...msgs);
   }
 
   warn(...msgs: any[]): void {
-    return this.log("WARN", ...msgs);
+    return this.log(LogLevel.WARN, ...msgs);
   }
 
   error(...msgs: any[]): void {
-    return this.log("ERROR", ...msgs);
+    return this.log(LogLevel.ERROR, ...msgs);
   }
 
 }

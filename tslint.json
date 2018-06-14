@@ -124,10 +124,11 @@
             "check-type"
         ],
         // Config different from tslint:latest
-        "no-implicit-dependencies": [
-            true,
-            "dev"
-        ],
+        // "no-implicit-dependencies": [
+        //     true,
+        //     "dev"
+        // ],
+        "no-implicit-dependencies": false,
         "object-literal-key-quotes": [
             true,
             "consistent-as-needed"

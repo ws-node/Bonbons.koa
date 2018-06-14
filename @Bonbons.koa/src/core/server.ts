@@ -402,7 +402,7 @@ export class BonbonsServer implements IServer {
   }
 
   private _init() {
-    this.option(ENV_MODE, { mode: this._isDev ? "development" : "production" });
+    this.option(ENV_MODE, { mode: this._isDev ? "development" : "production", trace: true });
     this.option(CONFIG_COLLECTION, this._configs);
     this.option(DI_CONTAINER, new DIContainer());
     this.option(GLOBAL_LOGGER, BonbonsLogger);
@@ -427,9 +427,9 @@ export class BonbonsServer implements IServer {
 
   private _initDIContainer() {
     this._logger.debug("core", this._initDIContainer.name, "init DI container.");
-    this._logger.debug("core", this._initDIContainer.name, `scoped inject entry count : [ ${green(this._scoped.length)} ].`);
+    this._logger.trace("core", this._initDIContainer.name, `scoped inject entry count : [ ${green(this._scoped.length)} ].`);
     this._scoped.forEach(([tk, imp]) => this._injectable_final(tk, imp, InjectScope.Scoped));
-    this._logger.debug("core", this._initDIContainer.name, `singleton inject entry count : [ ${green(this._singleton.length)} ].`);
+    this._logger.trace("core", this._initDIContainer.name, `singleton inject entry count : [ ${green(this._singleton.length)} ].`);
     this._singleton.forEach(([tk, imp]) => this._injectable_final(tk, imp, InjectScope.Singleton));
     this._di.complete();
     this._logger.debug("core", this._initDIContainer.name, `complete with di container : [ total injectable count : ${green(this._di.count)} ].`);
@@ -457,20 +457,20 @@ export class BonbonsServer implements IServer {
   }
 
   private _useRouters() {
-    this._logger.debug("core", this._useRouters.name, `init app routers : [ router modules count : ${green(this._ctlrs.length)} ]`);
+    this._logger.debug("core", this._useRouters.name, `start build routers : [ count : ${green(this._ctlrs.length)} ]`);
     const mainRouter = new KOARouter();
     this._ctlrs.forEach(controllerClass => {
       const ct = new controllerClass();
       const { router } = <ControllerMetadata>(ct.getConfig && ct.getConfig());
       const thisRouter = new KOARouter({ prefix: router.prefix as string });
-      this._logger.debug("core", this._useRouters.name, `bind controller module : [ name : ${yellow(controllerClass.name)} # routes count : ${COLORS.green}${Object.keys(router.routes).length}${COLORS.reset} ]`);
+      this._logger.debug("core", this._useRouters.name, `register ${yellow(controllerClass.name)} : [ # prefix : ${cyan(router.prefix)} # methods : ${COLORS.green}${Object.keys(router.routes).length}${COLORS.reset} ]`);
       Object.keys(router.routes).forEach(methodName => {
         const item = router.routes[methodName];
         const { path, allowMethods } = item;
         if (!allowMethods) throw invalidOperation("invalid method, you must set a HTTP method for a route.");
         allowMethods.forEach(eachMethod => {
           if (!path) return;
-          this._logger.debug("core", this._useRouters.name, `bind route : [ method : ${green(item.allowMethods)} # path : ${blue(item.path)} # params : ${cyan(item.funcParams.map(i => i.key).join(",") || "-")} ]`);
+          this._logger.trace("core", this._useRouters.name, `add route : [ ${green(eachMethod)} ${blue(item.path)} # params : ${cyan(item.funcParams.map(i => i.key).join(",") || "-")} ]`);
           const middlewares = [];
           this._selectFormParser(item, middlewares);
           this._decideFinalStep(item, middlewares, controllerClass, methodName);

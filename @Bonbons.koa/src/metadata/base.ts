@@ -1,5 +1,6 @@
 export interface IENV {
-  mode: "development" | "production";
+  mode?: "development" | "production";
+  trace?: boolean;
 }
 
 export interface IConstructor<T> {

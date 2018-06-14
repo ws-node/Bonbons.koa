@@ -9,38 +9,18 @@ export class MoreController extends BaseController {
 
   // @GET
   @Method("GET")
-  @Route("/index/:abc/:def?{id}&{name}&{fuck}")
-  public index(abc: string, def: string, id: number, name: string, fuck: string): JsonResult {
-    this.logger.debug("TestController", "index");
+  @Route("/index")
+  public index(): JsonResult {
+    this.logger.debug("MoreController", "index");
     return this.toJSON({
-      query: this.context.request.querystring,
-      moreMessage: " woshinidie " + fuck + " -- " + this.imp.show(),
-      checks: {
-        test: this.test,
-        imp: this.imp,
-        msg: { abc, def, id, name },
-        typeChecks: {
-          abc: typeof abc,
-          def: typeof def,
-          id: typeof id,
-          name: typeof name
-        }
-      }
+      v: "hello"
     });
   }
 
-  // @POST
-  @Method("POST")
+  @Method("POST", "PUT", "DELETE")
   @Route("/postJSon")
-  public SendMessage(@FromBody("application/javascript") params) {
-    this.logger.debug("TestController", "SendMessage");
-    return this.toJSON(params);
-  }
-
-  @Method("POST")
-  @Route("/postForm")
-  public SendFormMessage(@FromForm({ formLimit: '50kb', }) params) {
-    this.logger.debug("TestController", "SendFormMessage");
+  public receivePost(@FromBody() params) {
+    this.logger.debug("MoreController", "receivePost");
     return this.toJSON(params);
   }
 
