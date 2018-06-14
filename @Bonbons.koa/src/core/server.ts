@@ -380,9 +380,10 @@ export class BonbonsServer implements IServer {
 
   private _readConfig(config?: BonbonsServerConfig) {
     if (config) {
-      this._isDev = config.mode !== "production";
       this._port = config.port || 3000;
       this._ctlrs = config.controller || [];
+      this._isDev = config.mode !== "production";
+      this.option(ENV_MODE, { mode: config.mode || "development", trace: true });
       resolveInjections(this._scoped, config.scoped || []);
       resolveInjections(this._singleton, config.singleton || []);
       (config.middlewares || []).forEach(item => {
