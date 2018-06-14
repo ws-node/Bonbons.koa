@@ -33,7 +33,7 @@ import { MoreController } from "./src/controller/more";
   singleton: [TestService],
   options: [
     { token: TOKEN_TEST, value: valueTest },
-    { token: ENV_MODE, value: { trace: false } },
+    { token: ENV_MODE, value: { trace: true } },
     [JSON_RESULT_OPTIONS, { staticType: true, resolver: JsonResultResolvers.decamelize }]
   ]
 })

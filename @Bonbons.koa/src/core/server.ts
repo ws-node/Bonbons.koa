@@ -403,13 +403,13 @@ export class BonbonsServer implements IServer {
   }
 
   private _earlyInit() {
-    this.option(ENV_MODE, { mode: this._isDev ? "development" : "production", trace: true });
-  }
-
-  private _init() {
+    this.option(ENV_MODE, { mode: "development", trace: true });
     this.option(CONFIG_COLLECTION, this._configs);
     this.option(DI_CONTAINER, new DIContainer());
     this.option(GLOBAL_LOGGER, BonbonsLogger);
+  }
+
+  private _init() {
     this.option(STATIC_TYPED_RESOLVER, TypedSerializer);
     this.option(JSON_RESULT_OPTIONS, DEFAULTS.jsonOptions);
     this.option(STRING_RESULT_OPTIONS, DEFAULTS.stringOption);
@@ -423,7 +423,6 @@ export class BonbonsServer implements IServer {
   private _initLogger() {
     const Logger = Injectable()(this._configs.get(GLOBAL_LOGGER));
     const env = this._configs.get(ENV_MODE);
-    console.log(env);
     this._logger = new Logger(env);
     this.singleton(GlobalLogger, () => this._logger);
     this._logger.debug("core", this._initLogger.name, `logger init : [ type -> ${green(Logger.name)} ].`);
