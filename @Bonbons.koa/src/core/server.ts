@@ -421,7 +421,7 @@ export class BonbonsServer implements IServer {
     const env = this._configs.get(ENV_MODE);
     this._logger = new Logger(env);
     this.singleton(GlobalLogger, () => this._logger);
-    this._logger.debug("core", this._initLogger.name, `logger init : [ type : ${green(Logger.name)} ].`);
+    this._logger.debug("core", this._initLogger.name, `logger init : [ type -> ${green(Logger.name)} ].`);
     this._logger.debug("core", this._initLogger.name, "-----------------------");
   }
 
@@ -432,7 +432,7 @@ export class BonbonsServer implements IServer {
     this._logger.trace("core", this._initDIContainer.name, `singleton inject entry count : [ ${green(this._singleton.length)} ].`);
     this._singleton.forEach(([tk, imp]) => this._injectable_final(tk, imp, InjectScope.Singleton));
     this._di.complete();
-    this._logger.debug("core", this._initDIContainer.name, `complete with di container : [ total injectable count : ${green(this._di.count)} ].`);
+    this._logger.debug("core", this._initDIContainer.name, `complete with di container : [ total injectable count -> ${green(this._di.count)} ].`);
     this._logger.debug("core", this._initDIContainer.name, "-----------------------");
   }
 
@@ -457,20 +457,20 @@ export class BonbonsServer implements IServer {
   }
 
   private _useRouters() {
-    this._logger.debug("core", this._useRouters.name, `start build routers : [ count : ${green(this._ctlrs.length)} ]`);
+    this._logger.debug("core", this._useRouters.name, `start build routers : [ count -> ${green(this._ctlrs.length)} ]`);
     const mainRouter = new KOARouter();
     this._ctlrs.forEach(controllerClass => {
       const ct = new controllerClass();
       const { router } = <ControllerMetadata>(ct.getConfig && ct.getConfig());
       const thisRouter = new KOARouter({ prefix: router.prefix as string });
-      this._logger.debug("core", this._useRouters.name, `register ${yellow(controllerClass.name)} : [ # prefix : ${cyan(router.prefix)} # methods : ${COLORS.green}${Object.keys(router.routes).length}${COLORS.reset} ]`);
+      this._logger.debug("core", this._useRouters.name, `register ${yellow(controllerClass.name)} : [ @prefix -> ${cyan(router.prefix)} @methods -> ${COLORS.green}${Object.keys(router.routes).length}${COLORS.reset} ]`);
       Object.keys(router.routes).forEach(methodName => {
         const item = router.routes[methodName];
         const { path, allowMethods } = item;
         if (!allowMethods) throw invalidOperation("invalid method, you must set a HTTP method for a route.");
         allowMethods.forEach(eachMethod => {
           if (!path) return;
-          this._logger.trace("core", this._useRouters.name, `add route : [ ${green(eachMethod)} ${blue(item.path)} # params : ${cyan(item.funcParams.map(i => i.key).join(",") || "-")} ]`);
+          this._logger.trace("core", this._useRouters.name, `add route : [ ${green(eachMethod)} ${blue(item.path)} @params -> ${cyan(item.funcParams.map(i => i.key).join(",") || "-")} ]`);
           const middlewares = [];
           this._selectFormParser(item, middlewares);
           this._decideFinalStep(item, middlewares, controllerClass, methodName);
