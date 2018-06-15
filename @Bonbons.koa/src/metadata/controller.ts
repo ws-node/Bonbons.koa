@@ -1,6 +1,7 @@
 import { IConstructor, FormType, Async } from "./base";
 import { ConfigsCollection } from "./di";
 import { BaseFormOptions } from "./../metadata/options";
+import { BonbonsPipeEntry } from "./pipe";
 
 export type AllowMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "OPTIONS" | "HEAD";
 
@@ -11,10 +12,10 @@ export interface IControllerConfig {
 export interface IRoute {
   path: string;
   allowMethods: AllowMethod[];
-  // pipes: {
-  //     list: IPipeElement[];
-  //     merge: boolean;
-  // };
+  pipes: {
+    list: BonbonsPipeEntry[];
+    merge: boolean;
+  };
   funcParams: Array<{ key: string, type: any, isQuery: boolean }>;
   form: {
     parser: FormType;
@@ -30,7 +31,7 @@ export interface BonbonsRouterConfig {
 
 export interface IBonbonsControllerMetadata {
   router: BonbonsRouterConfig;
-  pipes: any[];
+  pipes: BonbonsPipeEntry[];
 }
 
 export interface IBonbonsController {

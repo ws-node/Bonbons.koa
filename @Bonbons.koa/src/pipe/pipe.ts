@@ -1,17 +1,13 @@
-import { IPipe, PipeOnInit, PipeParamType } from "../metadata/pipe";
+import { IPipe, PipeOnInit, PipeParamType, IPipeFactory } from "../metadata/pipe";
 import { Async, IBonbonsContext, IConstructor } from "../metadata/base";
 import { Reflection } from "../di/reflect";
 
 export { PipeOnInit };
 
-export interface IPipeFactory<T> {
-  (params: PipeParamType[] | { [key: string]: PipeParamType }): IConstructor<T>;
-}
-
 export abstract class PipeMiddleware<T = {}> implements IPipe<T> {
   constructor() { }
   public readonly context!: IBonbonsContext;
-  abstract process(): Async<void> | void;
+  abstract process(next?: () => Async<any>): Async<void> | void;
 }
 
 export function createPipeFactory<T extends IPipe>(target: IConstructor<T>): IPipeFactory<T> {
@@ -45,4 +41,5 @@ export function createPipeInstance<T extends IPipe>(type: IConstructor<T>, depts
   const instance = new type(...depts);
   instance.context = <IBonbonsContext>$$ctx;
   (<any>instance).pipeOnInit();
+  return instance;
 }

@@ -4,7 +4,8 @@ import {
   BonbonsServerConfig,
   BonbonsInjectEntry,
   KOAMiddlewareTuple,
-  InjectableServiceType
+  InjectableServiceType,
+  BonbonsPipeEntry
 } from "../metadata/core";
 import {
   IRoute,
@@ -49,12 +50,14 @@ import {
 import { InjectScope, InjectableToken, ImplementToken } from "../metadata/injectable";
 import { Context } from "../controller";
 import { DEFAULTS } from "./../options";
-import { FormType, IConstructor } from "./../metadata/base";
+import { FormType, IConstructor, Async } from "./../metadata/base";
 import { BaseFormOptions } from "./../metadata/options";
 import { GLOBAL_LOGGER, BonbonsLogger, GlobalLogger, COLORS, ColorsHelper } from "./../plugins/logger";
 import { Injectable } from "./../decorators";
 import { InjectService } from "../plugins/injector";
 import { ConfigService } from "../plugins/configs";
+import { createPipeInstance } from "../pipe";
+import { IPipe } from "../metadata/pipe";
 
 const { green, cyan, red, blue, magenta, yellow } = ColorsHelper;
 
@@ -87,6 +90,7 @@ export class BonbonsServer implements IServer {
   private _ctlrs: IConstructor<any>[] = [];
   private _configs: IConfigs = new ConfigCollection();
   private _mwares: KOAMiddlewareTuple[] = [];
+  private _pipes: BonbonsPipeEntry[] = [];
   private _scoped: [InjectableToken<any>, ImplementDIValue][] = [];
   private _singleton: [InjectableToken<any>, ImplementDIValue][] = [];
   private _port = 3000;
@@ -115,6 +119,10 @@ export class BonbonsServer implements IServer {
    */
   public use(mfac: MiddlewaresFactory, ...params: any[]): BonbonsServer {
     this._mwares.push([mfac, params]);
+    return this;
+  }
+
+  public pipe(pipe: BonbonsPipeEntry): BonbonsServer {
     return this;
   }
 
@@ -376,6 +384,7 @@ export class BonbonsServer implements IServer {
     delete this._app;
     delete this._ctlrs;
     delete this._mwares;
+    delete this._pipes;
     delete this._scoped;
     delete this._singleton;
     delete this._port;
@@ -390,6 +399,7 @@ export class BonbonsServer implements IServer {
       this.option(ENV_MODE, { mode: config.mode || "development" });
       resolveInjections(this._scoped, config.scoped || []);
       resolveInjections(this._singleton, config.singleton || []);
+      this._pipes.push(...(config.pipes || []));
       (config.middlewares || []).forEach(item => {
         if (item instanceof Array) {
           this._mwares.push([item[0], item[1]]);
@@ -481,12 +491,15 @@ export class BonbonsServer implements IServer {
       this._logger.debug("core", this._useRouters.name, `register ${yellow(controllerClass.name)} : [ @prefix -> ${cyan(router.prefix)} @methods -> ${COLORS.green}${Object.keys(router.routes).length}${COLORS.reset} ]`);
       Object.keys(router.routes).forEach(methodName => {
         const item = router.routes[methodName];
-        const { path, allowMethods } = item;
+        const { path, allowMethods, pipes } = item;
+        // console.log(item);
         if (!allowMethods) throw invalidOperation("invalid method, you must set a HTTP method for a route.");
         allowMethods.forEach(eachMethod => {
           if (!path) return;
           this._logger.trace("core", this._useRouters.name, `add route : [ ${green(eachMethod)} ${blue(item.path)} @params -> ${cyan(item.funcParams.map(i => i.key).join(",") || "-")} ]`);
-          const middlewares = [];
+          const middlewares: KOAMiddleware[] = [];
+          const { list: pipelist } = pipes;
+          this._usePipeMiddlewares(pipelist, middlewares);
           this._selectFormParser(item, middlewares);
           this._decideFinalStep(item, middlewares, controllerClass, methodName);
           this._selectFuncMethod(thisRouter, eachMethod)(path, ...middlewares);
@@ -501,6 +514,14 @@ export class BonbonsServer implements IServer {
     this.use(allowedMethods.bind(mainRouter));
   }
 
+  private _usePipeMiddlewares(pipelist: IConstructor<IPipe>[], middlewares: ((context: KOAContext, next: () => Async<any>) => any)[]) {
+    (pipelist || []).forEach((pipe: IConstructor<IPipe>) => middlewares.push((ctx, next) => {
+      const $$ctx = ctx.state["$$ctx"] || (ctx.state["$$ctx"] = new Context(ctx));
+      const instance = createPipeInstance(pipe, this._di.resolveDeps(pipe) || [], $$ctx);
+      return instance.process(next);
+    }));
+  }
+
   private _useMiddlewares() {
     this._mwares.forEach(([fac, ...args]) => this._app.use(fac(...args)));
   }
@@ -513,7 +534,7 @@ export class BonbonsServer implements IServer {
     middlewares.push((ctx) => {
       const list = this._di.resolveDeps(constructor);
       const c = new constructor(...list);
-      c.$$ctx = new Context(ctx);
+      c.$$ctx = ctx.state["$$ctx"] || (ctx.state["$$ctx"] = new Context(ctx));
       const result: IResult = constructor.prototype[methodName].bind(c)(...this._parseFuncParams(constructor, ctx, route));
       resolveResult(ctx, result, this._di.get(ConfigService));
     });

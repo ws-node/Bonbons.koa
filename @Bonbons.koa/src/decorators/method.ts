@@ -1,6 +1,8 @@
 import { AllowMethod, IBonbonsController, IBonbonsControllerMetadata, IRoute } from "../metadata/controller";
 import { Reflection } from "../di/reflect";
 import { PARAMS_META_KEY } from "../metadata/reflect";
+import { BonbonsPipeEntry } from "../metadata/pipe";
+import { IConstructor } from "../metadata/base";
 
 export function initRoutes(reflect: IBonbonsControllerMetadata, propertyKey: string): IRoute {
   return reflect.router.routes[propertyKey] || (reflect.router.routes[propertyKey] = <any>{});
@@ -74,5 +76,26 @@ export function Route(path: string) {
       return path;
     });
     Reflection.SetControllerMetadata(target, reflect);
+  };
+}
+
+type PipesControllerDecorator = <T>(target: IConstructor<T>) => void;
+type PipesMethodDecorator = <T>(target: T, propertyKey: string) => void;
+type PipesDecorator = <T>(target: IConstructor<T> | T, propertyKey?: string) => void;
+
+export function Pipes(pipes: BonbonsPipeEntry[]): PipesDecorator;
+export function Pipes(pipes: BonbonsPipeEntry[], merge: boolean): PipesMethodDecorator;
+export function Pipes(pipes: BonbonsPipeEntry[], merge = true) {
+  return function <T>(target: IConstructor<T> | T, propertyKey?: string) {
+    if (propertyKey) {
+      const reflect = Reflection.GetControllerMetadata((<T>target));
+      Reflection.SetControllerMetadata(target, reroute(reflect, propertyKey, { pipes: { list: pipes, merge } }));
+    } else {
+      const { prototype } = <IConstructor<T>>target;
+      const reflect = Reflection.GetControllerMetadata((prototype));
+      const { pipes: pipelist } = reflect;
+      pipelist.push(...pipes);
+      Reflection.SetControllerMetadata(prototype, reflect);
+    }
   };
 }

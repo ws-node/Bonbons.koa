@@ -40,11 +40,11 @@ function registerCompelete(meta: IBonbonsControllerMetadata) {
     // } else if (!route.middleware) {
     //     route.middleware = { list: [...meta.middlewares], merge: false };
     // }
-    // if (route.pipes && route.pipes.merge) {
-    //     route.pipes.list = [...meta.pipes, ...route.pipes.list];
-    // } else if (!route.pipes) {
-    //     route.pipes = { list: [...meta.pipes], merge: false };
-    // }
+    if (route.pipes && route.pipes.merge) {
+      route.pipes.list = [...meta.pipes, ...route.pipes.list];
+    } else if (!route.pipes) {
+      route.pipes = { list: [...meta.pipes], merge: false };
+    }
   });
   return meta;
 }

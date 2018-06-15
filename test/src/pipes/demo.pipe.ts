@@ -1,4 +1,4 @@
-import { Pipe, Param, PipeMiddleware, PipeOnInit, createPipeFactory } from "@Bonbons";
+import { Pipe, Param, PipeMiddleware, PipeOnInit, createPipeFactory, GlobalLogger } from "@Bonbons";
 import { TestService } from "../service/test";
 
 @Pipe()
@@ -10,18 +10,20 @@ class TestPipe extends PipeMiddleware implements PipeOnInit {
   @Param("name")
   private differentName: string;
 
-  constructor(private test: TestService) {
+  constructor(private test: TestService, private logger: GlobalLogger) {
     super();
-    console.log(this.test);
+    // console.log(this.test);
   }
 
   pipeOnInit(): void {
-    console.log(this.value);
-    console.log(this.differentName);
+    // console.log(this.value);
+    // console.log(this.differentName);
+    // console.log(this.context);
   }
 
-  process() {
-
+  process(next: () => Promise<any>) {
+    this.logger.debug("process in pipe [ DemoPipe ]");
+    next();
   }
 
 }

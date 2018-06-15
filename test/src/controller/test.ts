@@ -1,8 +1,11 @@
-import { Controller, Method, Route, JsonResult, BaseController, FromBody, FromForm, GET, POST, InjectService, GlobalLogger } from "@Bonbons";
+import { Controller, Method, Route, JsonResult, BaseController, FromBody, FromForm, GET, POST, InjectService, GlobalLogger, Pipes } from "@Bonbons";
 import { TestService } from "../service/test";
 import { ABC } from "../service/imp";
+import { DemoPipe } from "../pipes/demo.pipe";
+import { WrappedPipe } from "../pipes/wrap.pipe";
 
 @Controller("api")
+@Pipes([DemoPipe])
 export class TestController extends BaseController {
 
   constructor(
@@ -16,6 +19,7 @@ export class TestController extends BaseController {
   // @GET
   @Method("GET")
   @Route("/index/:abc/:def?{id}&{name}&{fuck}")
+  @Pipes([WrappedPipe({ name: "a", value: 2 }), DemoPipe], false)
   public index(abc: string, def: string, id: number, name: string, fuck: string): JsonResult {
     this.logger.debug("TestController", "index");
     return this.toJSON({
@@ -45,6 +49,7 @@ export class TestController extends BaseController {
 
   @Method("POST")
   @Route("/postForm")
+  @Pipes([], false)
   public SendFormMessage(@FromForm({ formLimit: "50kb", }) params) {
     this.logger.debug("TestController", "SendFormMessage");
     return this.toJSON(params);

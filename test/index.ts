@@ -48,9 +48,9 @@ class App extends BaseApp {
   start(): void {
     this.logger.debug(`app is running on port ${this.config.port || 3000}`);
 
-    const a = createPipeInstance(DemoPipe, [{ aasasa: 2123 }]);
+    // const a = createPipeInstance(DemoPipe, [{ aasasa: 2123 }]);
 
-    const b = createPipeInstance(WrappedPipe({ value: 654321, name: "nimasile" }), [{ afafdbka: 231 }]);
+    // const b = createPipeInstance(WrappedPipe({ value: 654321, name: "nimasile" }), [{ afafdbka: 231 }]);
 
   }
 

@@ -2,10 +2,14 @@ import { BonbonsToken, BonbonsEntry, BonbonsConfigCollection } from "./di";
 import { KOAMiddleware } from "./source";
 import { IConstructor } from "./base";
 import { InjectableToken, ImplementToken, BonbonsDeptFactory, ImplementDIValue } from "./injectable";
+import { BonbonsPipeEntry } from "./pipe";
+
+export { BonbonsPipeEntry };
 
 export type MiddlewaresFactory = (...args: any[]) => KOAMiddleware;
 export type KOAMiddlewareTuple = [MiddlewaresFactory, Array<any>];
 export type BonbonsKOAMiddleware = MiddlewaresFactory | KOAMiddlewareTuple;
+
 
 export type InjectableServiceType = IConstructor<any> | [InjectableToken<any>, ImplementDIValue<any>] | BonbonsInjectEntry<any>;
 
@@ -77,6 +81,7 @@ export interface BonbonsServerConfig {
    * @memberof BonbonsServerConfig
    */
   middlewares?: BonbonsKOAMiddleware[];
+  pipes?: BonbonsPipeEntry[];
   /**
    * Scoped services
    * ---
@@ -205,6 +210,7 @@ export interface BonbonsServerConfig {
 
 export interface IBonbonsServer {
   use(mfac: MiddlewaresFactory): IBonbonsServer;
+  pipe(pipe: BonbonsPipeEntry): IBonbonsServer;
   option<T>(entry: BonbonsEntry<T>): IBonbonsServer;
   option<T>(token: BonbonsToken<T>, value: T): IBonbonsServer;
   controller<T>(ctlr: IConstructor<T>): IBonbonsServer;
