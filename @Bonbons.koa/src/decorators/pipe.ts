@@ -36,7 +36,6 @@ export function PipeArg(arg?: number | string): PipeParamDecorator {
     const { keyMatch } = reflect;
     const list = keyMatch || [];
     list.push([!arg ? propertyKey : (typeof (arg) === "number" ? arg - 1 : arg), propertyKey]);
-    console.log(list);
     Reflection.SetPipeMetadata(target, { ...reflect, keyMatch: list });
   };
 }

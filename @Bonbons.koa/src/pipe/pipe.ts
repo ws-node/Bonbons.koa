@@ -7,7 +7,7 @@ export { PipeOnInit };
 
 export abstract class PipeMiddleware implements IPipe {
   constructor() { }
-  public context!: IBonbonsContext;
+  public readonly context!: IBonbonsContext;
   abstract process(): void | Async<void>;
 }
 
@@ -18,7 +18,7 @@ export function createPipe<T extends IPipe>(target: IConstructor<T>) {
   };
 }
 
-export function createPipeInstance<T extends IPipe>(type: IConstructor<T>, depts: any[]) {
+export function createPipeInstance<T extends IPipe>(type: IConstructor<T>, depts: any[], $$ctx?: IBonbonsContext) {
   const { params, keyMatch } = Reflection.GetPipeMetadata(type.prototype);
   const initFn = type.prototype.pipeOnInit || (() => { });
   type.prototype.pipeOnInit = function () {
@@ -26,5 +26,6 @@ export function createPipeInstance<T extends IPipe>(type: IConstructor<T>, depts
     initFn.bind(this)();
   };
   const instance = new type(...depts);
+  instance.context = $$ctx;
   (<any>instance).pipeOnInit();
 }
