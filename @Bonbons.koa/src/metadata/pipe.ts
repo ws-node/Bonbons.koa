@@ -2,7 +2,7 @@ import { Async, IConstructor, IBonbonsContext } from "./base";
 
 export type PipeParamType = string | number | boolean;
 
-export interface IPipe {
+export interface IPipe<T = {}> {
   context: IBonbonsContext;
   process(): Async<void> | void;
 }

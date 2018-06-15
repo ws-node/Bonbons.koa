@@ -40,8 +40,14 @@ export interface IBonbonsController {
 
 export type IController = IConstructor<IBonbonsController>;
 
-export interface IBonbonsMethodResult {
+export interface IMethodResult {
   toString(configs: ConfigsCollection): string;
 }
 
-export type UnionBonbonsResult = IBonbonsMethodResult | Async<IBonbonsMethodResult> | string;
+export interface IBuildInTypeResult {
+  toString(): string;
+}
+
+export type IBonbonsMethodResult = null | undefined | void | IMethodResult | IBuildInTypeResult;
+
+export type UnionBonbonsResult = IBonbonsMethodResult | Async<IBonbonsMethodResult>;

@@ -11,6 +11,7 @@ import {
   UnionBonbonsResult as IResult,
   IBonbonsControllerMetadata as ControllerMetadata,
   IBonbonsMethodResult as SyncResult,
+  IMethodResult,
 } from "../metadata/controller";
 import {
   DIContainer,
@@ -618,6 +619,6 @@ function resolveResult(ctx: KOAContext, result: IResult, configs: ConfigsCollect
   } else {
     if (!result) { ctx.body = ""; return; }
     if (typeof result === "string") { ctx.body = result; return; }
-    ctx.body = (<SyncResult>result).toString(configs);
+    ctx.body = (<IMethodResult>result).toString(configs);
   }
 }

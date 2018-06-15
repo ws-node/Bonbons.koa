@@ -1,64 +1,15 @@
 import {
   Bonbons, JSON_RESULT_OPTIONS, JsonResultResolvers,
   BonbonsApp, BaseApp, ENV_MODE, PipeMiddleware,
-  createPipeInstance, PipeArg, PipeOnInit, Pipe, createPipe
+  createPipeInstance
 } from "@Bonbons";
 import { TestService } from "./src/service/test";
 import { ABC, ImplementService } from "./src/service/imp";
 import { valueTest, TOKEN_TEST } from "./src/config/test";
 import { TestController } from "./src/controller/test";
 import { MoreController } from "./src/controller/more";
-
-@Pipe({ value: 123456, name: "woshinidie" })
-class PIpeClass extends PipeMiddleware implements PipeOnInit {
-
-  @PipeArg()
-  private value: number;
-
-  @PipeArg("name")
-  private differentName: string;
-
-  constructor(a: any) {
-    super();
-    console.log(a);
-  }
-
-  pipeOnInit(): void {
-    console.log(this.value);
-    console.log(this.differentName);
-  }
-
-  process(): void | Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-
-}
-
-class PIpeClass2 extends PipeMiddleware implements PipeOnInit {
-
-  @PipeArg()
-  private value: number;
-
-  @PipeArg()
-  private name: string;
-
-  constructor(a: any) {
-    super();
-    console.log(a);
-  }
-
-  pipeOnInit(): void {
-    console.log(this.value);
-    console.log(this.name);
-  }
-
-  process(): void | Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-
-}
-
-const pipe = createPipe(PIpeClass2)({ value: 654321, name: "nimasile" });
+import { DemoPipe } from "./src/pipes/demo.pipe";
+import { WrappedPipe } from "./src/pipes/wrap.pipe";
 
 // Bonbons.New
 //   .scoped(ImplementService)
@@ -97,9 +48,9 @@ class App extends BaseApp {
   start(): void {
     this.logger.debug(`app is running on port ${this.config.port || 3000}`);
 
-    const a = createPipeInstance(PIpeClass, [{ aasasa: 2123 }]);
+    const a = createPipeInstance(DemoPipe, [{ aasasa: 2123 }]);
 
-    const b = createPipeInstance(pipe, [{ afafdbka: 231 }]);
+    const b = createPipeInstance(WrappedPipe({ value: 654321, name: "nimasile" }), [{ afafdbka: 231 }]);
 
   }
 
