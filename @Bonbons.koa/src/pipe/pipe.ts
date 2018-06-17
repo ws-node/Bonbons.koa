@@ -5,6 +5,20 @@ import { clone } from "./../utils/helpers";
 
 export { PipeOnInit };
 
+/**
+ * Base BONBONS Pipe
+ * ---
+ * * you should always extends this Class
+ * * contains input params and request/response context support
+ *
+ * @description
+ * @author Big Mogician
+ * @export
+ * @abstract
+ * @class PipeMiddleware
+ * @implements {IPipe<T>}
+ * @template T
+ */
 export abstract class PipeMiddleware<T = any> implements IPipe<T> {
   public readonly params!: T;
   constructor() { }
@@ -12,9 +26,44 @@ export abstract class PipeMiddleware<T = any> implements IPipe<T> {
   abstract process(next?: () => Async<any>): Async<void> | void;
 }
 
+/**
+ * Bonbons Pipe Factory Generator
+ * ---
+ * use this generator to create factory and params bundle.
+ */
 export const PipeFactory = {
+  /**
+   * Create a generic pipe
+   * -----
+   * Create a bundle with pipe which input params is a typed-object.
+   * @description
+   * @author Big Mogician
+   * @template T
+   * @param {IConstructor<IPipe<T>>} type
+   * @returns
+   */
   generic<T extends PipeMapParams>(type: IConstructor<IPipe<T>>) { return createGenericPipeFactory(type); },
+  /**
+   * Create a array pipe
+   * -----
+   * Create a bundle with pipe which input params is an array.
+   * @description
+   * @author Big Mogician
+   * @template T
+   * @param {IConstructor<IPipe<T>>} type
+   * @returns
+   */
   fromArray<T extends PipeArrayParams>(type: IConstructor<IPipe<T>>) { return createArrayPipeFactory(type); },
+  /**
+   *    * Create a common pipe
+   * -----
+   * Create a bundle with pipe which input params is an object.
+   * @description
+   * @author Big Mogician
+   * @template T
+   * @param {IConstructor<IPipe<T>>} type
+   * @returns
+   */
   fromMap<T = any>(type: IConstructor<IPipe<T>>) { return createPipeFactory(type); }
 };
 
