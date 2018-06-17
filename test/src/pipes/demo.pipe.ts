@@ -21,9 +21,11 @@ class TestPipe extends PipeMiddleware implements PipeOnInit {
     // console.log(this.context);
   }
 
-  process(next: () => Promise<any>) {
+  async process(next: () => Promise<any>) {
     this.logger.debug("process in pipe [ DemoPipe ]");
-    next();
+    // console.log(next);
+    await next();
+    console.log(this.context.response.body);
   }
 
 }

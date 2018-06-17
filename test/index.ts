@@ -37,6 +37,7 @@ import { WrappedPipe } from "./src/pipes/wrap.pipe";
     // [ABC, () => new ImplementService(new TestService())]
   ],
   singleton: [TestService],
+  pipes: [DemoPipe],
   options: [
     { token: TOKEN_TEST, value: valueTest },
     { token: ENV_MODE, value: { trace: true } },

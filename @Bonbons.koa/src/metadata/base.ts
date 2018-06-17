@@ -5,6 +5,10 @@ export interface IENV {
   trace?: boolean;
 }
 
+export interface IDepolyENV {
+  port?: number;
+}
+
 export interface IConstructor<T> {
   new(...args: any[]): T;
 }

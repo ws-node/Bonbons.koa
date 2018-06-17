@@ -51,14 +51,6 @@ export interface BonbonsInjectEntry<T> {
  * @interface BonbonsServerConfig
  */
 export interface BonbonsServerConfig {
-  mode?: "development" | "production";
-  /**
-   * The port to expose and listen.
-   * @description
-   * @type {number}
-   * @memberof BonbonsServerConfig
-   */
-  port?: number;
   /**
    * Controllers of application
    * ---
@@ -222,8 +214,6 @@ export interface IBonbonsServer {
   singleton<T, M>(token: InjectableToken<T>, srv: ImplementToken<M>): IBonbonsServer;
   singleton<T, M>(token: InjectableToken<T>, srv: BonbonsDeptFactory<M>): IBonbonsServer;
   singleton<T, M>(token: InjectableToken<T>, srv: M): IBonbonsServer;
-  port(port?: number): IBonbonsServer;
-  mode(mode: "development" | "production"): IBonbonsServer;
   getConfigs(): BonbonsConfigCollection;
   start(): void;
 }

@@ -52,6 +52,7 @@ export class TestController extends BaseController {
   @Pipes([], false)
   public SendFormMessage(@FromForm({ formLimit: "50kb", }) params) {
     this.logger.debug("TestController", "SendFormMessage");
+    console.log(params);
     return this.toJSON(params);
   }
 
