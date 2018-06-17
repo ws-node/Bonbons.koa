@@ -16,12 +16,12 @@ import { DI_CONTAINER } from "./../di";
 export function BonbonsApp(config: BonbonsServerConfig) {
   return function <T extends BaseApp>(target: IConstructor<T>) {
     const theStartup = target.prototype.start;
-    target.prototype._configs = config;
     target.prototype.start = function () {
       const app = new BonbonsServer(config);
       app.start();
       const conf = app.getConfigs();
-      const di = conf.get(DI_CONTAINER);
+      this._configs = { get: conf.get.bind(conf) };
+      const di = this._configs.get(DI_CONTAINER);
       this.logger = di.get(GlobalLogger);
       theStartup && theStartup.bind(this)();
     };

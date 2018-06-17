@@ -1,7 +1,6 @@
 import {
   Bonbons, JSON_RESULT_OPTIONS, JsonResultResolvers,
-  BonbonsApp, BaseApp, ENV_MODE, PipeMiddleware,
-  createPipeInstance
+  BonbonsApp, BaseApp, ENV_MODE, DEPLOY_MODE
 } from "@Bonbons";
 import { TestService } from "./src/service/test";
 import { ABC, ImplementService } from "./src/service/imp";
@@ -23,8 +22,6 @@ import { WrappedPipe } from "./src/pipes/wrap.pipe";
 //   .start();
 
 @BonbonsApp({
-  mode: "development",
-  port: 3000,
   controller: [
     TestController,
     MoreController
@@ -47,7 +44,8 @@ import { WrappedPipe } from "./src/pipes/wrap.pipe";
 class App extends BaseApp {
 
   start(): void {
-    this.logger.debug(`app is running on port ${this.config.port || 3000}`);
+    const { port } = this.config.get(DEPLOY_MODE);
+    this.logger.debug(`app is running on port ${port || 3000}`);
 
     // const a = createPipeInstance(DemoPipe, [{ aasasa: 2123 }]);
 

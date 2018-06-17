@@ -20,7 +20,36 @@ The core features are under development. Currently, the dependency injection sys
 ```
 
 ## How it works?
-#### 1. Create a service and register
+#### 1. Create an app
+```Javascript
+// 1. use constructor
+new Bonbons()
+    .option(DEPLOY_MODE, { port: 5678 });
+    .start();
+// 2. use static property
+Bonbons.New
+    .option(DEPLOY_MODE, { port: 5678 });
+    .start();
+// 3. use static method
+Bonbons.Create()
+    .option(DEPLOY_MODE, { port: 5678 });
+    .start();
+// 4. use decorator
+@BonbonsApp({
+    options: [
+        { token: DEPLOY_MODE, value: { port: 5678 } }
+    ]
+})
+class MyApp extends BaseApp { 
+    start(): void {
+        const { port } = this.config.get(DEPLOY_MODE);
+        this.logger.debug(`app is running on port ${port || 3000}`);
+    }
+ }
+
+ new MyApp().start();
+```
+#### 2. Create a service
 ```JavaScript
 @Injectabe()
 export class SecService {
@@ -30,15 +59,73 @@ export class SecService {
     }
 }
 
-...
+// 1.inject directly
+new Bonbons()
+    .scoped(SecService)
+//    .scoped(SecService, new SecService())
+//    .scoped(SecService, () => new SecService())
+//    .singleton(SecService)
+    .option(DEPLOY_MODE, { port: 5678 });
+    .start();
+// or use decorator
+@BonbonsApp({
+//    singleton: [ SecService ],
+    scoped: [ SecService ]
+    options: [
+        { token: DEPLOY_MODE, value: { port: 5678 } }
+    ]
+})
+// ...
 
-// register a scoped-service
-Bonbons.Create().scoped(SecService);
-// or register a singleton-service
-Bonbons.Create().singleton(SecService);
+// 2. use interface injection
+// define a ABC
+export abstract class ABCService {
+    abstract getMessage(): string;
+}
+
+// then extends ABC and implements methods
+@Injectabe()
+export class MainService implements ABCService {
+
+    // create an unique token
+    private id = UUID.Create();
+
+    constructor() { }
+
+    public getMessage(): string {
+        return this.id;
+    }
+
+}
+
+// then inject them
+new Bonbons()
+    .scoped(SecService)
+    .scoped(ABCService, MainService)
+//    .scoped(ABCService, new MainService())
+//    .scoped(ABCService, () => new MainService())
+//    .singleton(ABCService, MainService)
+    .option(DEPLOY_MODE, { port: 5678 });
+    .start();
+// or
+@BonbonsApp({
+    scoped: [ 
+        SecService,
+//        [ ABCService, MainService ],
+        { token: ABCService, implement: MainService },
+//        { token: ABCService, implement: new MainService() },
+//        { token: ABCService, implement: () => new MainService() }
+    ],
+    options: [
+        { token: DEPLOY_MODE, value: { port: 5678 } }
+    ]
+})
+// ...
+
+// use call the service by constructor injection or dependency lookup in other services , pipes and constrollers.
 ```
 
-#### 2. Create a controller and register 
+#### 3. Create a controller
 ```JavaScript
 @Controller("api")
 export class MainController extends BaseController {
@@ -53,7 +140,8 @@ export class MainController extends BaseController {
         console.log("this is a api method with query id : " + this.context.query("id", Number));
         console.log("this is a api method with query select : " + this.context.query("select", Boolean));
         console.log("this is a api method with query notexist : " + this.context.query("notexist"));
-        return new JsonResult({ value: "this is a api method with base : " });
+        // return new JsonResult({ value: "this is a api method with base : " });
+        return this.toJSON({ value: "this is a api method with base : " });
     }
 
     @Method("GET")
@@ -80,70 +168,27 @@ Bonbons.Create()
     .controller(MainController);
 ```
 
-#### 3. Use ABC to split dependency
-```JavaScript
-// define a ABC
-export abstract class ABCService {
-    public abstract getMessage(): string;
-}
-
-// then extends ABC and implements methods
-@Injectabe()
-export class MainService extends ABCService {
-
-    private id = UUID.Create();
-
-    constructor(sec: SecService) {
-        super();
-    }
-
-    public getMessage(): string {
-        return this.id;
-    }
-
-}
-
-...
-
-// finally inject it
-Bonbons.Create()
-    .controller(MainController)
-    .scoped(SecService)
-    .scoped(ABCService, MainService)
-
-// now you can split the dependency by ABC injection
-export class SuperService {
-
-    constructor(private sec: SecService, private main: ABCService) {
-
-    }
-
-    print() {
-        return "Hello World! " + this.main.getMessage();
-    }
-
-}
-
-// it works!
-```
-
-#### 4. Add middlewares or pipe for route or controller (not completed in koa version)
+#### 4. Add middlewares or pipe for route or controller (not completed in koa beta version)
 ```JavaScript
 // 1 : Middlewares like express style
 // first create middleware in pure function format.
-function middleware01(r, rs, next) {
-    console.log("123456");
-    next();
+const middleware01 = () => {
+    return async (ctx, next) => {
+        console.log("123456");
+        await next();
+    };
 }
-function middleware02(r, rs, next) {
-    console.log("555555");
-    next();
+const middleware02 = (param) => {
+    return async (ctx, next) => {
+        console.log(param);
+        await next();
+    };
 }
 
 // then add it to method by decorator
 @Method("GET", "POST")
 @Route("/index")
-@Middleware([middleware02])
+@Middleware([middleware02(55555)])
 public ApiIndex(): JsonResult {
     return new JsonResult({ value: this.sup.print() });
 }
@@ -151,7 +196,7 @@ public ApiIndex(): JsonResult {
 // this decorator is alse can be add in controller
 // the middlewares add to controller will add to all the registeres methods, but you can still rewrite this behavior.
 @Controller("api")
-@Middleware([middleware01])
+@Middleware([middleware01()])
 export class MainController extends BaseController {
 
     constructor(private sup: SuperService) {
@@ -167,9 +212,9 @@ export class MainController extends BaseController {
 
     @Method("GET", "POST")
     @Route("/index2")
-    @Middleware([middleware02], false) 
-    // merge:true(default), will extends controller middlewares list : [middleware01, middleware02]
-    // merge:false, will not extends controller middlewares list : [middleware02]
+    @Middleware([middleware02(33333)], false) 
+    // merge:true(default), will extends controller middlewares list : [middleware01(), middleware02(33333)]
+    // merge:false, will not extends controller middlewares list : [middleware02(555)]
     public ApiIndex(): JsonResult {
         return new JsonResult({ value: this.sup.print() });
     }
@@ -177,51 +222,49 @@ export class MainController extends BaseController {
 }
 
 // 2. Bonbons pipes
-export class RandomBreak extends MiddlewarePipe {
+interface PipeDate {
+  value: number;
+  name: string;
+}
 
-    constructor() { super(); }
+@Pipe()
+class PIpeClass2 extends PipeMiddleware<PipeDate> implements PipeOnInit {
 
-    async process(): Promise<void> {
-        this.context.locals.set("woshinidie", 1024);
-        await this.sleep(100);
-        const k = parseInt((Math.random() * 100).toString(), 10) % 2 === 1;
-        console.log(k);
-        if (k) {
-            this.throws("哈哈哈哈哈哈哈哈，崩溃了吧");
-        }
-    }
+  @Params()
+  private params: PipeDate;
+
+  @Param()
+  private value: number;
+
+  @Param("name")
+  private vName: string;
+
+  constructor(private logger: GlobalLogger) {
+    super();
+  }
+
+  pipeOnInit(): void {
+    // console.log(this.params);
+  }
+
+  async process(next: () => Promise<any>): void | Promise<void> {
+    console.log(this.vName);
+    this.logger.debug("process in pipe [ WrappedPipe ]");
+    await next();
+  }
 
 }
+
+export const WrappedPipe = createPipeFactory(PIpeClass2);
 
 // then add to route method
- @Method("GET")
-    @Route("/index")
-    @Pipes([RandomBreak])
-    public async GetIndex(): StringResult {
-        console.log("this is a get method with base : ");
-        return this.toStringfy("woshinidie : 鎴戞槸浣犵埞", { encoding: "GBK" });
-    }
-// this method will goes wrong in 50% situation
-
-// or you can create pipe factory to modify the pipe behavior by constructor params
-export class TokenCheck extends MiddlewarePipe {
-
-    constructor(private token: string) { super(); }
-
-    process(): void | Promise<void> {
-        const tk: string = this.context.request.headers.get("jwt-token");
-        if (!tk || tk !== (this.token || "default_token")) {
-            // this.throws("401 unauthorize");
-            this.redirect(301, "/api/error401");
-        }
-    }
-
+@Method("GET")
+@Route("/index")
+@Pipes([WrappedPipe({name: "aaa", value: 123456})])
+public async GetIndex(): StringResult {
+    console.log("this is a get method with base : ");
+    return this.toStringfy("woshinidie : 鎴戞槸浣犵埞", { encoding: "GBK" });
 }
-
-export const Authorize: IPipeFactory = createPipeBundle(TokenCheck);
-
-// then call this factory with params
-@Pipes([Authorize("user_role")]) // =>  this.token = "user_role"
 ```
 
 #### 5. Form control

@@ -37,7 +37,7 @@ import {
   BonbonsConfigCollection as IConfigs,
   BonbonsDIContainer as IDIContainer,
   BonbonsToken,
-  ConfigsCollection,
+  ConfigsCollection as ReadonlyConfigs
 } from "../metadata/di";
 import { invalidOperation, invalidParam, TypeCheck, TypedSerializer } from "../utils";
 import {
@@ -64,7 +64,7 @@ const { green, cyan, red, blue, magenta, yellow } = ColorsHelper;
 
 export abstract class BaseApp {
   protected readonly logger: GlobalLogger;
-  protected get config(): BonbonsServerConfig { return this["_configs"]; }
+  protected get config(): ReadonlyConfigs { return this["_configs"]; }
   public start(): void { }
 }
 
@@ -635,7 +635,7 @@ function controllerError(ctlr: any) {
   return invalidParam("Controller to be add is invalid. You can only add the controller been decorated by @Controller(...).", { className: ctlr && ctlr.name });
 }
 
-function resolveResult(ctx: KOAContext, result: IResult, configs: ConfigsCollection, isSync?: boolean) {
+function resolveResult(ctx: KOAContext, result: IResult, configs: ReadonlyConfigs, isSync?: boolean) {
   const isAsync = isSync === undefined ? TypeCheck.isFromCustomClass(result || {}, Promise) : !isSync;
   if (isAsync) {
     (<Promise<SyncResult>>result)

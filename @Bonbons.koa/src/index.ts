@@ -7,3 +7,5 @@ export * from "./pipe";
 export * from "./plugins/logger";
 export * from "./plugins/injector";
 export * from "./plugins/configs";
+
+export * from "./utils/uuid";
