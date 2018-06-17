@@ -106,6 +106,7 @@ export class BonbonsServer implements IServer {
   /**
    * Use koa middleware.
    * ---
+   * use "factory" here , not "factory()", the params should be sent after factory as ...args
    * @description
    * @author Big Mogician
    * @param {MiddlewaresFactory} mfac middleware factory
@@ -114,11 +115,12 @@ export class BonbonsServer implements IServer {
    * @memberof BonbonsServer
    */
   public use(mfac: MiddlewaresFactory, ...params: any[]): BonbonsServer {
-    this._mwares.push([mfac, params]);
+    this._mwares.push([mfac, params || []]);
     return this;
   }
 
   public pipe(pipe: BonbonsPipeEntry): BonbonsServer {
+    this._pipes.push(pipe);
     return this;
   }
 
@@ -394,7 +396,10 @@ export class BonbonsServer implements IServer {
         if (item instanceof Array) {
           this._mwares.push([item[0], item[1]]);
         } else {
-          this._mwares.push([item, []]);
+          const { factory, params } = <any>item;
+          factory ?
+            this._mwares.push([factory, params]) :
+            this._mwares.push([<any>item, []]);
         }
       });
       (config.options || []).forEach(item => {
@@ -486,22 +491,13 @@ export class BonbonsServer implements IServer {
       const proto = controllerClass.prototype;
       const { router } = <ControllerMetadata>(proto.getConfig && proto.getConfig());
       const thisRouter = new KOARouter({ prefix: router.prefix as string });
-      this._logger.debug("core", this.$$useRouters.name, `register ${yellow(controllerClass.name)} : [ @prefix -> ${cyan(router.prefix)} @methods -> ${COLORS.green}${Object.keys(router.routes).length}${COLORS.reset} ]`);
+      this._logger.debug("core", this.$$useRouters.name,
+        `register ${yellow(controllerClass.name)} : [ @prefix -> ${cyan(router.prefix)} @methods -> ${COLORS.green}${Object.keys(router.routes).length}${COLORS.reset} ]`);
       Object.keys(router.routes).forEach(methodName => {
         const item = router.routes[methodName];
-        const { path, allowMethods, pipes } = item;
-        // console.log(item);
+        const { allowMethods } = item;
         if (!allowMethods) throw invalidOperation("invalid method, you must set a HTTP method for a route.");
-        allowMethods.forEach(eachMethod => {
-          if (!path) return;
-          this._logger.trace("core", this.$$useRouters.name, `add route : [ ${green(eachMethod)} ${blue(item.path)} @params -> ${cyan(item.funcParams.map(i => i.key).join(",") || "-")} ]`);
-          const middlewares: KOAMiddleware[] = [];
-          const { list: pipelist } = pipes;
-          this.$$addPipeMiddlewares(pipelist, middlewares);
-          this.$$selectFormParser(item, middlewares);
-          this.$$decideFinalStep(item, middlewares, controllerClass, methodName);
-          this.$$selectFuncMethod(thisRouter, eachMethod)(path, ...middlewares);
-        });
+        allowMethods.forEach(each => this.$$resolveControllerMethod(each, item, controllerClass, methodName, thisRouter));
       });
       mainRouter.use(thisRouter.routes()).use(thisRouter.allowedMethods());
     });
@@ -510,6 +506,20 @@ export class BonbonsServer implements IServer {
     const { routes, allowedMethods } = mainRouter;
     this.use(routes.bind(mainRouter));
     this.use(allowedMethods.bind(mainRouter));
+  }
+
+  private $$resolveControllerMethod(method: string, item: IRoute, ctor: IConstructor<any>, name: string, router: KOARouter) {
+    const { path, pipes, middlewares: mds } = item;
+    if (!path) return;
+    const { list: pipelist } = pipes;
+    const { list: mdsList } = mds;
+    this._logger.trace("core", this.$$resolveControllerMethod.name,
+      `add route : [ ${green(method)} ${blue(item.path)} @params -> ${cyan(item.funcParams.map(i => i.key).join(",") || "-")} ]`);
+    const middlewares: KOAMiddleware[] = [...(mdsList || [])];
+    this.$$addPipeMiddlewares(pipelist, middlewares);
+    this.$$selectFormParser(item, middlewares);
+    this.$$decideFinalStep(item, middlewares, ctor, name);
+    this.$$selectFuncMethod(router, method)(path, ...middlewares);
   }
 
   private $$preparePipes() {
@@ -521,14 +531,13 @@ export class BonbonsServer implements IServer {
   private $$addPipeMiddlewares(pipelist: BonbonsPipeEntry[], middlewares: ((context: KOAContext, next: () => Async<any>) => any)[]) {
     resolvePipeList(pipelist).forEach(bundle => middlewares.push(async (ctx, next) => {
       const { target: pipe } = bundle;
-      const $$ctx = ctx.state["$$ctx"] || (ctx.state["$$ctx"] = new Context(ctx));
-      const instance = createPipeInstance(bundle, this._di.resolveDeps(pipe) || [], $$ctx);
+      const instance = createPipeInstance(bundle, this._di.resolveDeps(pipe) || [], getRequestContext(ctx));
       return instance.process(next);
     }));
   }
 
   private $$useMiddlewares() {
-    this._mwares.forEach(([fac, ...args]) => this._app.use(fac(...args)));
+    this._mwares.forEach(([fac, args]) => this._app.use(fac(...(args || []))));
   }
 
   private $$selectFormParser(route: IRoute, middlewares: any[]) {
@@ -539,20 +548,19 @@ export class BonbonsServer implements IServer {
     middlewares.push((ctx) => {
       const list = this._di.resolveDeps(constructor);
       const c = new constructor(...list);
-      c.$$ctx = ctx.state["$$ctx"] || (ctx.state["$$ctx"] = new Context(ctx));
-      const result: IResult = constructor.prototype[methodName].bind(c)(...this.$$parseFuncParams(constructor, ctx, route));
+      c.$$ctx = getRequestContext(ctx);
+      const result: IResult = constructor.prototype[methodName].bind(c)(...this.$$parseFuncParams(ctx, route));
       resolveResult(ctx, result, this._di.get(ConfigService));
     });
   }
 
-  private $$parseFuncParams(constructor: any, ctx: KOAContext, route: IRoute) {
+  private $$parseFuncParams(ctx: KOAContext, route: IRoute) {
     const querys = (route.funcParams || []).map(({ key, type, isQuery }) => {
       const pack = isQuery ? ctx.query : ctx.params;
       return !type ? pack[key] : type(pack[key]);
     });
     if (route.form && route.form.index >= 0) {
       const { index } = route.form;
-      // when use form decorator for params, try to static-typed and inject to function params list.
       const staticType = (route.funcParams || [])[index];
       const resolver = this._configs.get(STATIC_TYPED_RESOLVER);
       querys[index] = !!(resolver && staticType && staticType.type) ?
@@ -577,6 +585,10 @@ export class BonbonsServer implements IServer {
     return invoke;
   }
 
+}
+
+function getRequestContext(ctx: KOAContext) {
+  return ctx.state["$$ctx"] || (ctx.state["$$ctx"] = new Context(ctx));
 }
 
 function resolvePipeList(list: BonbonsPipeEntry[]) {

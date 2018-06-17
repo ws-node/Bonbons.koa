@@ -32,14 +32,11 @@ export function Controller(config?: string | IControllerConfig): ControllerDecor
 function registerCompelete(meta: IBonbonsControllerMetadata) {
   // console.log(JSON.stringify(meta.router.routes, null, "\t"));
   Object.keys(meta.router.routes).map(key => meta.router.routes[key]).forEach(route => {
-    // if (!(route.path || "").startsWith("/")) {
-    //   route.path = meta.router.prefix + route.path;
-    // }
-    // if (route.middleware && route.middleware.merge) {
-    //     route.middleware.list = [...meta.middlewares, ...route.middleware.list];
-    // } else if (!route.middleware) {
-    //     route.middleware = { list: [...meta.middlewares], merge: false };
-    // }
+    if (route.middlewares && route.middlewares.merge) {
+      route.middlewares.list = [...meta.middlewares, ...route.middlewares.list];
+    } else if (!route.middlewares) {
+      route.middlewares = { list: [...meta.middlewares], merge: false };
+    }
     if (route.pipes && route.pipes.merge) {
       route.pipes.list = [...meta.pipes, ...route.pipes.list];
     } else if (!route.pipes) {

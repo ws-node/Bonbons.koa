@@ -2,6 +2,7 @@ import { IConstructor, FormType, Async } from "./base";
 import { ConfigsCollection } from "./di";
 import { BaseFormOptions } from "./../metadata/options";
 import { BonbonsPipeEntry } from "./pipe";
+import { KOAMiddleware } from "./source";
 
 export type AllowMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "OPTIONS" | "HEAD";
 
@@ -14,6 +15,10 @@ export interface IRoute {
   allowMethods: AllowMethod[];
   pipes: {
     list: BonbonsPipeEntry[];
+    merge: boolean;
+  };
+  middlewares: {
+    list: KOAMiddleware[];
     merge: boolean;
   };
   funcParams: Array<{ key: string, type: any, isQuery: boolean }>;
@@ -32,6 +37,7 @@ export interface BonbonsRouterConfig {
 export interface IBonbonsControllerMetadata {
   router: BonbonsRouterConfig;
   pipes: BonbonsPipeEntry[];
+  middlewares: KOAMiddleware[];
 }
 
 export interface IBonbonsController {

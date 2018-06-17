@@ -1,4 +1,4 @@
-import { Param, PipeMiddleware, PipeOnInit, Pipe, GlobalLogger, PipeFactory } from "@Bonbons";
+import { PipeMiddleware, PipeOnInit, Pipe, GlobalLogger, PipeFactory } from "@Bonbons";
 import { TestService } from "../service/test";
 
 @Pipe()

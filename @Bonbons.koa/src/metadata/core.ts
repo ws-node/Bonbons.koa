@@ -8,7 +8,7 @@ export { BonbonsPipeEntry };
 
 export type MiddlewaresFactory = (...args: any[]) => KOAMiddleware;
 export type KOAMiddlewareTuple = [MiddlewaresFactory, Array<any>];
-export type BonbonsKOAMiddleware = MiddlewaresFactory | KOAMiddlewareTuple;
+export type BonbonsKOAMiddleware = MiddlewaresFactory | KOAMiddlewareTuple | { factory: MiddlewaresFactory, params: any[] };
 
 
 export type InjectableServiceType = IConstructor<any> | [InjectableToken<any>, ImplementDIValue<any>] | BonbonsInjectEntry<any>;
@@ -201,7 +201,7 @@ export interface BonbonsServerConfig {
 }
 
 export interface IBonbonsServer {
-  use(mfac: MiddlewaresFactory): IBonbonsServer;
+  use(mfac: MiddlewaresFactory, ...pars: any[]): IBonbonsServer;
   pipe(pipe: BonbonsPipeEntry): IBonbonsServer;
   option<T>(entry: BonbonsEntry<T>): IBonbonsServer;
   option<T>(token: BonbonsToken<T>, value: T): IBonbonsServer;

@@ -3,6 +3,7 @@ import { Reflection } from "../di/reflect";
 import { PARAMS_META_KEY } from "../metadata/reflect";
 import { BonbonsPipeEntry } from "../metadata/pipe";
 import { IConstructor } from "../metadata/base";
+import { KOAMiddleware } from "../metadata/source";
 
 export function initRoutes(reflect: IBonbonsControllerMetadata, propertyKey: string): IRoute {
   return reflect.router.routes[propertyKey] || (reflect.router.routes[propertyKey] = <any>{});
@@ -95,6 +96,23 @@ export function Pipes(pipes: BonbonsPipeEntry[], merge = true) {
       const reflect = Reflection.GetControllerMetadata((prototype));
       const { pipes: pipelist } = reflect;
       pipelist.push(...pipes);
+      Reflection.SetControllerMetadata(prototype, reflect);
+    }
+  };
+}
+
+export function Middlewares(middlewares: KOAMiddleware[]): PipesDecorator;
+export function Middlewares(middlewares: KOAMiddleware[], merge: boolean): PipesMethodDecorator;
+export function Middlewares(middlewares: KOAMiddleware[], merge = true) {
+  return function <T>(target: IConstructor<T> | T, propertyKey?: string) {
+    if (propertyKey) {
+      const reflect = Reflection.GetControllerMetadata((<T>target));
+      Reflection.SetControllerMetadata(target, reroute(reflect, propertyKey, { middlewares: { list: middlewares, merge } }));
+    } else {
+      const { prototype } = <IConstructor<T>>target;
+      const reflect = Reflection.GetControllerMetadata((prototype));
+      const { middlewares: list } = reflect;
+      list.push(...middlewares);
       Reflection.SetControllerMetadata(prototype, reflect);
     }
   };
