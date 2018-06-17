@@ -188,7 +188,7 @@ const middleware02 = (param) => {
 // then add it to method by decorator
 @Method("GET", "POST")
 @Route("/index")
-@Middleware([middleware02(55555)])
+@Middlewares([middleware02(55555)])
 public ApiIndex(): JsonResult {
     return new JsonResult({ value: this.sup.print() });
 }
@@ -196,7 +196,7 @@ public ApiIndex(): JsonResult {
 // this decorator is alse can be add in controller
 // the middlewares add to controller will add to all the registeres methods, but you can still rewrite this behavior.
 @Controller("api")
-@Middleware([middleware01()])
+@Middlewares([middleware01()])
 export class MainController extends BaseController {
 
     constructor(private sup: SuperService) {
@@ -323,7 +323,7 @@ export class PostModel {
 // then try to create a post method:
     @Method("POST")
     @Route("/post/:id/details/:name?{query}&{find}")
-    @Middleware([], false)
+    @Middlewares([], false)
     public POSTIndex( // you can access params, queryParams and form object by function-params-injection.
         id: number,
         name: string,
