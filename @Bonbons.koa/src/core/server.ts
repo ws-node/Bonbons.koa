@@ -58,7 +58,7 @@ import { Injectable } from "./../decorators";
 import { InjectService } from "../plugins/injector";
 import { ConfigService } from "../plugins/configs";
 import { createPipeInstance } from "../pipe";
-import { IPipe } from "../metadata/pipe";
+import { IPipeBundle } from "../metadata/pipe";
 
 const { green, cyan, red, blue, magenta, yellow } = ColorsHelper;
 
@@ -518,10 +518,11 @@ export class BonbonsServer implements IServer {
     pipes.forEach(pipe => this.use(() => pipe));
   }
 
-  private $$addPipeMiddlewares(pipelist: IConstructor<IPipe>[], middlewares: ((context: KOAContext, next: () => Async<any>) => any)[]) {
-    (pipelist || []).forEach((pipe: IConstructor<IPipe>) => middlewares.push(async (ctx, next) => {
+  private $$addPipeMiddlewares(pipelist: BonbonsPipeEntry[], middlewares: ((context: KOAContext, next: () => Async<any>) => any)[]) {
+    resolvePipeList(pipelist).forEach(bundle => middlewares.push(async (ctx, next) => {
+      const { target: pipe } = bundle;
       const $$ctx = ctx.state["$$ctx"] || (ctx.state["$$ctx"] = new Context(ctx));
-      const instance = createPipeInstance(pipe, this._di.resolveDeps(pipe) || [], $$ctx);
+      const instance = createPipeInstance(bundle, this._di.resolveDeps(pipe) || [], $$ctx);
       return instance.process(next);
     }));
   }
@@ -576,6 +577,17 @@ export class BonbonsServer implements IServer {
     return invoke;
   }
 
+}
+
+function resolvePipeList(list: BonbonsPipeEntry[]) {
+  return (list || []).map(ele => {
+    const { target } = <IPipeBundle<any>>ele;
+    if (!target) {
+      return { target: <IConstructor<any>>ele, params: {} };
+    } else {
+      return <IPipeBundle<any>>ele;
+    }
+  });
 }
 
 function resolveInjections(list: [InjectableToken<any>, ImplementDIValue][], injects: InjectableServiceType[]) {

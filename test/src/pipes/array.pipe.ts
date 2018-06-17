@@ -1,17 +1,11 @@
 import { Param, PipeMiddleware, PipeOnInit, Pipe, GlobalLogger, PipeFactory } from "@Bonbons";
 import { TestService } from "../service/test";
 
-interface PipeDate {
-  value: number;
-  name: string;
-}
-
 @Pipe()
-class PIpeClass2 extends PipeMiddleware<PipeDate> implements PipeOnInit {
+class PIpeClass3 extends PipeMiddleware<[number, string]> implements PipeOnInit {
 
   constructor(private test: TestService, private logger: GlobalLogger) {
     super();
-    // console.log(this.test);
   }
 
   pipeOnInit(): void {
@@ -19,11 +13,11 @@ class PIpeClass2 extends PipeMiddleware<PipeDate> implements PipeOnInit {
   }
 
   async process(next: () => Promise<any>) {
-    this.logger.debug("process in pipe [ WrappedPipe ]");
+    this.logger.debug("process in pipe [ ArrayPipe ]");
     console.log(this.params);
     await next();
   }
 
 }
 
-export const WrappedPipe = PipeFactory.generic(PIpeClass2);
+export const ArrayPipe = PipeFactory.fromArray(PIpeClass3);
