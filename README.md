@@ -230,9 +230,6 @@ interface PipeDate {
 @Pipe()
 class PIpeClass2 extends PipeMiddleware<PipeDate> implements PipeOnInit {
 
-  @Params()
-  private params: PipeDate;
-
   @Param()
   private value: number;
 
@@ -249,13 +246,14 @@ class PIpeClass2 extends PipeMiddleware<PipeDate> implements PipeOnInit {
 
   async process(next: () => Promise<any>): void | Promise<void> {
     console.log(this.vName);
+    console.log(this.params);
     this.logger.debug("process in pipe [ WrappedPipe ]");
     await next();
   }
 
 }
 
-export const WrappedPipe = createPipeFactory(PIpeClass2);
+export const WrappedPipe = PipeFactory.generic(PIpeClass2);
 
 // then add to route method
 @Method("GET")
