@@ -1,6 +1,9 @@
-import { IConstructor, FormType } from "./base";
-import { BonbonsConfigCollection } from "./di";
+/// <reference types="koa" />
+import { IConstructor, FormType, Async } from "./base";
+import { ConfigsCollection } from "./di";
 import { BaseFormOptions } from "./../metadata/options";
+import { BonbonsPipeEntry } from "./pipe";
+import { KOAMiddleware } from "./source";
 export declare type AllowMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "OPTIONS" | "HEAD";
 export interface IControllerConfig {
     prefix?: string;
@@ -8,6 +11,14 @@ export interface IControllerConfig {
 export interface IRoute {
     path: string;
     allowMethods: AllowMethod[];
+    pipes: {
+        list: BonbonsPipeEntry[];
+        merge: boolean;
+    };
+    middlewares: {
+        list: KOAMiddleware[];
+        merge: boolean;
+    };
     funcParams: Array<{
         key: string;
         type: any;
@@ -27,15 +38,19 @@ export interface BonbonsRouterConfig {
 }
 export interface IBonbonsControllerMetadata {
     router: BonbonsRouterConfig;
-    pipes: any[];
+    pipes: BonbonsPipeEntry[];
+    middlewares: KOAMiddleware[];
 }
 export interface IBonbonsController {
     __valid?: boolean;
     getConfig?(): IBonbonsControllerMetadata;
 }
 export declare type IController = IConstructor<IBonbonsController>;
-export interface IBonbonsMethodResult {
-    toString(configs: BonbonsConfigCollection): string;
+export interface IMethodResult {
+    toString(configs: ConfigsCollection): string;
 }
-export declare type Async<T> = Promise<T>;
-export declare type UnionBonbonsResult = IBonbonsMethodResult | Async<IBonbonsMethodResult> | string;
+export interface IBuildInTypeResult {
+    toString(): string;
+}
+export declare type IBonbonsMethodResult = null | undefined | void | IMethodResult | IBuildInTypeResult;
+export declare type UnionBonbonsResult = IBonbonsMethodResult | Async<IBonbonsMethodResult>;

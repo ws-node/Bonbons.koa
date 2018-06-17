@@ -1,11 +1,10 @@
-import { Context } from "./context";
 import { JsonResultOptions, StringResultOptions } from "../metadata/options";
 import { JsonResult } from "./result/json";
 import { StringResult } from "./result/string";
-import { Async } from "../metadata/controller";
+import { Async, IBonbonsContext as IContext } from "../metadata/base";
 export declare abstract class BaseController {
-    private _ctx;
-    readonly context: Context;
+    private readonly $$ctx;
+    readonly context: IContext;
     /**
      * Returns in JSON format, and supports the use of options to configure serialization behavior
      * @description

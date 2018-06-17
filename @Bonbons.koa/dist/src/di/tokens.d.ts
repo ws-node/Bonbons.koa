@@ -1,8 +1,10 @@
 import { BonbonsConfigCollection, BonbonsDIContainer, BonbonsTokenGenerator } from "../metadata/di";
-import { IStaticTypedResolver } from "../metadata/base";
+import { IStaticTypedResolver, IENV, IDepolyENV } from "../metadata/base";
 import { JsonResultOptions, StringResultOptions, ErrorPageTemplate, JsonFormOptions, URLFormOptions, TextFormOptions } from "../metadata/options";
 import { KOABodyParseOptions } from "../metadata/source";
 export declare const createToken: BonbonsTokenGenerator;
+export declare const ENV_MODE: import("../metadata/di").BonbonsToken<IENV>;
+export declare const DEPLOY_MODE: import("../metadata/di").BonbonsToken<IDepolyENV>;
 export declare const CONFIG_COLLECTION: import("../metadata/di").BonbonsToken<BonbonsConfigCollection>;
 export declare const DI_CONTAINER: import("../metadata/di").BonbonsToken<BonbonsDIContainer>;
 export declare const STATIC_TYPED_RESOLVER: import("../metadata/di").BonbonsToken<IStaticTypedResolver>;

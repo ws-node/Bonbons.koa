@@ -1,3 +1,13 @@
+/// <reference types="koa" />
+/// <reference types="koa-bodyparser" />
+import { KOARequest, KOAResponse } from "./source";
+export interface IENV {
+    mode?: "development" | "production";
+    trace?: boolean;
+}
+export interface IDepolyENV {
+    port?: number;
+}
 export interface IConstructor<T> {
     new (...args: any[]): T;
 }
@@ -18,4 +28,9 @@ export declare enum FormType {
     UrlEncoded = "url",
     TextPlain = "text",
     Raw = "raw"
+}
+export declare type Async<T> = Promise<T>;
+export interface IBonbonsContext {
+    request: KOARequest;
+    response: KOAResponse;
 }

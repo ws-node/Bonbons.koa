@@ -1,10 +1,12 @@
-import { IBonbonsServer as IServer, MiddlewaresFactory, BonbonsServerConfig } from "../metadata/core";
+import { IBonbonsServer as IServer, MiddlewaresFactory, BonbonsServerConfig, BonbonsPipeEntry } from "../metadata/core";
 import { BonbonsDeptFactory as InjectFactory } from "./../metadata/injectable";
-import { BonbonsEntry as Entry, BonbonsToken as Token } from "../metadata/di";
+import { BonbonsEntry as Entry, BonbonsToken as Token, BonbonsConfigCollection as IConfigs, ConfigsCollection as ReadonlyConfigs } from "../metadata/di";
 import { InjectableToken, ImplementToken } from "../metadata/injectable";
 import { IConstructor } from "./../metadata/base";
+import { GlobalLogger } from "./../plugins/logger";
 export declare abstract class BaseApp {
-    protected readonly config: BonbonsServerConfig;
+    protected readonly logger: GlobalLogger;
+    protected readonly config: ReadonlyConfigs;
     start(): void;
 }
 export declare class BonbonsServer implements IServer {
@@ -21,19 +23,21 @@ export declare class BonbonsServer implements IServer {
      * @memberof BonbonsServer
      */
     private _di;
+    private _logger;
     private _app;
     private _ctlrs;
     private _configs;
     private _mwares;
+    private _pipes;
     private _scoped;
     private _singleton;
     private _port;
     private _isDev;
     constructor(config?: BonbonsServerConfig);
-    mode(mode: "development" | "production"): BonbonsServer;
     /**
      * Use koa middleware.
      * ---
+     * use "factory" here , not "factory()", the params should be sent after factory as ...args
      * @description
      * @author Big Mogician
      * @param {MiddlewaresFactory} mfac middleware factory
@@ -42,6 +46,7 @@ export declare class BonbonsServer implements IServer {
      * @memberof BonbonsServer
      */
     use(mfac: MiddlewaresFactory, ...params: any[]): BonbonsServer;
+    pipe(pipe: BonbonsPipeEntry): BonbonsServer;
     /**
      * Set an option
      * ---
@@ -239,7 +244,7 @@ export declare class BonbonsServer implements IServer {
      * @memberof BonbonsServer
      */
     singleton<B, T>(token: InjectableToken<B>, srv: T): BonbonsServer;
-    port(port?: number): BonbonsServer;
+    getConfigs(): IConfigs;
     /**
      * Start application
      * ---
@@ -250,15 +255,22 @@ export declare class BonbonsServer implements IServer {
      */
     start(): void;
     private _clearServer;
-    private _initDIContainer;
-    private _readConfig;
-    private _init;
-    private _injectable;
-    private _injectable_final;
-    private _useRouters;
-    private _useMiddlewares;
-    private _selectFormParser;
-    private _decideFinalStep;
-    private _parseFuncParams;
-    private _selectFuncMethod;
+    private $$configsInitialization;
+    private $$optionsPreperations;
+    private $$defaultOptionsInitialization;
+    private $$useCommonOptions;
+    private $$initLogger;
+    private $$initDLookup;
+    private $$initDIContainer;
+    private $$preInject;
+    private $$injectaFinally;
+    private $$useRouters;
+    private $$resolveControllerMethod;
+    private $$preparePipes;
+    private $$addPipeMiddlewares;
+    private $$useMiddlewares;
+    private $$selectFormParser;
+    private $$decideFinalStep;
+    private $$parseFuncParams;
+    private $$selectFuncMethod;
 }

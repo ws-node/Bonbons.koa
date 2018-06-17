@@ -12,3 +12,4 @@ export declare const CTOR_META_KEY: unique symbol;
  * Record service's runtime reflection metadata
  */
 export declare const INJECTABLE_META_KEY: unique symbol;
+export declare const PIPE_META_KEY: unique symbol;

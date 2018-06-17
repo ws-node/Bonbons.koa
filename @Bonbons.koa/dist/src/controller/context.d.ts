@@ -2,7 +2,8 @@
 /// <reference types="koa-bodyparser" />
 /// <reference types="koa-router" />
 import { KOAContext, KOARequest, KOAResponse } from "../metadata/source";
-export declare class Context {
+import { IBonbonsContext } from "../metadata/base";
+export declare class Context implements IBonbonsContext {
     private source;
     readonly request: KOARequest;
     readonly response: KOAResponse;

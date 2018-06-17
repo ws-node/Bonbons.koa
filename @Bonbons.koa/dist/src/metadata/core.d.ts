@@ -1,11 +1,16 @@
 /// <reference types="koa" />
-import { BonbonsToken, BonbonsEntry } from "./di";
+import { BonbonsToken, BonbonsEntry, BonbonsConfigCollection } from "./di";
 import { KOAMiddleware } from "./source";
 import { IConstructor } from "./base";
 import { InjectableToken, ImplementToken, BonbonsDeptFactory, ImplementDIValue } from "./injectable";
+import { BonbonsPipeEntry } from "./pipe";
+export { BonbonsPipeEntry };
 export declare type MiddlewaresFactory = (...args: any[]) => KOAMiddleware;
 export declare type KOAMiddlewareTuple = [MiddlewaresFactory, Array<any>];
-export declare type BonbonsKOAMiddleware = MiddlewaresFactory | KOAMiddlewareTuple;
+export declare type BonbonsKOAMiddleware = MiddlewaresFactory | KOAMiddlewareTuple | {
+    factory: MiddlewaresFactory;
+    params: any[];
+};
 export declare type InjectableServiceType = IConstructor<any> | [InjectableToken<any>, ImplementDIValue<any>] | BonbonsInjectEntry<any>;
 /**
  * The inject-entry for injectable service in @BonbonsApp(...)
@@ -44,14 +49,6 @@ export interface BonbonsInjectEntry<T> {
  * @interface BonbonsServerConfig
  */
 export interface BonbonsServerConfig {
-    mode?: "development" | "production";
-    /**
-     * The port to expose and listen.
-     * @description
-     * @type {number}
-     * @memberof BonbonsServerConfig
-     */
-    port?: number;
     /**
      * Controllers of application
      * ---
@@ -74,6 +71,7 @@ export interface BonbonsServerConfig {
      * @memberof BonbonsServerConfig
      */
     middlewares?: BonbonsKOAMiddleware[];
+    pipes?: BonbonsPipeEntry[];
     /**
      * Scoped services
      * ---
@@ -200,7 +198,8 @@ export interface BonbonsServerConfig {
     options?: Array<(BonbonsEntry<any> | [BonbonsToken<any>, any])>;
 }
 export interface IBonbonsServer {
-    use(mfac: MiddlewaresFactory): IBonbonsServer;
+    use(mfac: MiddlewaresFactory, ...pars: any[]): IBonbonsServer;
+    pipe(pipe: BonbonsPipeEntry): IBonbonsServer;
     option<T>(entry: BonbonsEntry<T>): IBonbonsServer;
     option<T>(token: BonbonsToken<T>, value: T): IBonbonsServer;
     controller<T>(ctlr: IConstructor<T>): IBonbonsServer;
@@ -212,7 +211,6 @@ export interface IBonbonsServer {
     singleton<T, M>(token: InjectableToken<T>, srv: ImplementToken<M>): IBonbonsServer;
     singleton<T, M>(token: InjectableToken<T>, srv: BonbonsDeptFactory<M>): IBonbonsServer;
     singleton<T, M>(token: InjectableToken<T>, srv: M): IBonbonsServer;
-    port(port?: number): IBonbonsServer;
-    mode(mode: "development" | "production"): IBonbonsServer;
+    getConfigs(): BonbonsConfigCollection;
     start(): void;
 }

@@ -1,10 +1,10 @@
 import { BonbonsConfigCollection as ConfigCollection } from "../../metadata/di";
-import { IBonbonsMethodResult as SyncResult } from "../../metadata/controller";
+import { IMethodResult } from "../../metadata/controller";
 import { JsonResultOptions } from "./../../metadata/options";
 /**
  * Represent the json to send by response.
  */
-export declare class JsonResult implements SyncResult {
+export declare class JsonResult implements IMethodResult {
     private json;
     private options;
     constructor(json: any, options?: JsonResultOptions);

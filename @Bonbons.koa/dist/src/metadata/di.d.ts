@@ -10,15 +10,18 @@ export interface BonbonsEntry<T> {
 export interface BonbonsTokenGenerator {
     <T>(key: string): BonbonsToken<T>;
 }
-export interface BonbonsConfigCollection {
-    set<T>(token: BonbonsToken<T>, entry: T): void;
+export interface ConfigsCollection {
     get<T>(token: BonbonsToken<T>): T;
+}
+export interface BonbonsConfigCollection extends ConfigsCollection {
+    set<T>(token: BonbonsToken<T>, entry: T): void;
     toArray(): BonbonsEntry<any>[];
 }
 export interface BonbonsDIEntry {
     getInstance(): any;
 }
 export interface BonbonsDIContainer {
+    count: number;
     get<T>(token: InjectDIToken): T;
     register(selector: InjectDIToken, value: any, scope: InjectScope): any;
     resolveDeps<T>(value: IConstructor<T>): any[];
