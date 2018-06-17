@@ -27,7 +27,8 @@ import {
   BODY_PARSE_OPTIONS,
   TEXT_FORM_OPTIONS,
   URL_FORM_OPTIONS,
-  ENV_MODE
+  ENV_MODE,
+  DEPLOY_MODE
 } from "../di";
 import { BonbonsDeptFactory as InjectFactory, InjectDIToken, ImplementDIValue } from "./../metadata/injectable";
 import {
@@ -408,6 +409,7 @@ export class BonbonsServer implements IServer {
 
   private $$optionsPreperations() {
     this.option(ENV_MODE, { mode: "development", trace: true });
+    this.option(DEPLOY_MODE, { port: 3000 });
     this.option(CONFIG_COLLECTION, this._configs);
     this.option(DI_CONTAINER, new DIContainer());
     this.option(GLOBAL_LOGGER, BonbonsLogger);
@@ -427,6 +429,8 @@ export class BonbonsServer implements IServer {
   private $$useCommonOptions() {
     const { mode } = this._configs.get(ENV_MODE);
     this._isDev = mode === "development";
+    const { port } = this._configs.get(DEPLOY_MODE);
+    this._port = port || 3000;
   }
 
   private $$initLogger() {
