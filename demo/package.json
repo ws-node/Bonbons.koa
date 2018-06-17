@@ -10,7 +10,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "bonbons.koa": "^1.0.5-beta"
+    "bonbons.koa": "^1.0.6-beta"
   },
   "devDependencies": {
     "@types/koa-bodyparser": "^4.2.0",

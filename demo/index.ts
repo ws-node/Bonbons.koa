@@ -1,13 +1,14 @@
-import { Bonbons } from "bonbons.koa";
+import { Bonbons, DEPLOY_MODE, ENV_MODE } from "bonbons.koa";
 import { APIController } from "./src/controller/api";
 import { IndexController } from "./src/controller";
 import { AppService } from "./src/service/app";
 import { ScopeContract, ScopeService } from "./src/service/scope";
 
-Bonbons.Create()
+Bonbons.New
   .controller(IndexController)
   .controller(APIController)
   .singleton(AppService)
   .scoped(ScopeContract, ScopeService)
-  .port(3200)
+  .option(ENV_MODE, { mode: "production" })
+  .option(DEPLOY_MODE, { port: 3200 })
   .start();
