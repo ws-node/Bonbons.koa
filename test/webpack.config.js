@@ -11,7 +11,8 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, "server"),
-    filename: "[name].bundle.js"
+    filename: "[name].bundle.js",
+    publicPath: "public"
   },
   mode: "development",
   devtool: 'inline-source-map',
@@ -33,6 +34,10 @@ module.exports = {
         options: {
           transpileOnly: true
         }
+      },
+      {
+        test: /\.html$/,
+        loader: 'raw-loader'
       }
     ]
   }

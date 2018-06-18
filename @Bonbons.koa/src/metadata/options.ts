@@ -16,10 +16,6 @@ export interface StringResultOptions {
   decoding?: string;
 }
 
-export interface ErrorPageTemplate {
-  render(error): string;
-}
-
 export interface BaseFormOptions {
   encoding?: string;
   strict?: boolean;

@@ -27,9 +27,12 @@ export interface BonbonsDIEntry {
   getInstance(): any;
 }
 
-export interface BonbonsDIContainer {
-  count: number;
+export interface ReadonlyDIContainer {
   get<T>(token: InjectDIToken): T;
+}
+
+export interface BonbonsDIContainer extends ReadonlyDIContainer {
+  count: number;
   register(selector: InjectDIToken, value: any, scope: InjectScope);
   resolveDeps<T>(value: IConstructor<T>): any[];
   complete(): void;

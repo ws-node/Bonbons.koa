@@ -8,8 +8,12 @@ import { valueTest, TOKEN_TEST } from "./src/config/test";
 import { TestController } from "./src/controller/test";
 import { MoreController } from "./src/controller/more";
 import { DemoPipe } from "./src/pipes/demo.pipe";
-import { middleware01 } from "./src/middlewares/md01";
-import { middleware02 } from "./src/middlewares/md02";
+
+import webpack from "webpack";
+import webpackDevMiddleware from "koa-webpack-dev-middleware";
+import webpackHotMiddleware from "koa-webpack-hot-middleware";
+import config from "./webpack.config";
+const compiler = webpack(config);
 
 Bonbons.New
   .scoped(ImplementService)
@@ -18,11 +22,11 @@ Bonbons.New
   .controller(TestController)
   .controller(MoreController)
   .pipe(DemoPipe)
-  // .use(middleware01)
-  // .use(middleware02, 888888)
   .option(TOKEN_TEST, valueTest)
-  .option(ENV_MODE, { trace: true })
+  .option(ENV_MODE, { mode: "production", trace: true })
   .option(JSON_RESULT_OPTIONS, { staticType: true, resolver: JsonResultResolvers.decamelize })
+  .use(webpackDevMiddleware, compiler, { noInfo: true, publicPath: config.output.publicPath })
+  .use(webpackHotMiddleware, compiler)
   .start();
 
 // @BonbonsApp({
@@ -36,10 +40,6 @@ Bonbons.New
 //   ],
 //   singleton: [TestService],
 //   pipes: [DemoPipe],
-//   middlewares: [
-//     middleware01,
-//     { factory: middleware02, params: [888888] }
-//   ],
 //   options: [
 //     { token: TOKEN_TEST, value: valueTest },
 //     { token: ENV_MODE, value: { trace: true } },

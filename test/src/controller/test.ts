@@ -27,6 +27,7 @@ export class TestController extends BaseController {
   @Middlewares([middleware01()])
   public index(abc: string, def: string, id: number, name: string, fuck: string): JsonResult {
     this.logger.debug("TestController", "index");
+    throw new Error("fuck breaks!");
     return this.toJSON({
       query: this.context.request.querystring,
       moreMessage: " woshinidie " + fuck + " -- " + this.imp.show(),

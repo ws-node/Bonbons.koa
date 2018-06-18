@@ -21,7 +21,6 @@ import {
   DI_CONTAINER,
   JSON_RESULT_OPTIONS,
   STATIC_TYPED_RESOLVER,
-  ERROR_PAGE_TEMPLATE,
   STRING_RESULT_OPTIONS,
   JSON_FORM_OPTIONS,
   BODY_PARSE_OPTIONS,
@@ -37,6 +36,7 @@ import {
   BonbonsConfigCollection as IConfigs,
   BonbonsDIContainer as IDIContainer,
   BonbonsToken,
+  ReadonlyDIContainer as ReadonlyDI,
   ConfigsCollection as ReadonlyConfigs
 } from "../metadata/di";
 import { invalidOperation, invalidParam, TypeCheck, TypedSerializer } from "../utils";
@@ -59,6 +59,12 @@ import { InjectService } from "../plugins/injector";
 import { ConfigService } from "../plugins/configs";
 import { createPipeInstance } from "../pipe";
 import { IPipeBundle } from "../metadata/pipe";
+import {
+  ERROR_HANDLER,
+  ERROR_PAGE_TEMPLATE,
+  defaultErrorHandler,
+  defaultErrorPageTemplate
+} from "../plugins/errorHandler";
 
 const { green, cyan, red, blue, magenta, yellow } = ColorsHelper;
 
@@ -85,6 +91,8 @@ export class BonbonsServer implements IServer {
    * @memberof BonbonsServer
    */
   private _di!: IDIContainer;
+  private _readonlyDI!: ReadonlyDI;
+  private _readonlyConfigs!: ReadonlyConfigs;
   private _logger!: GlobalLogger;
 
   private _app = new KOA();
@@ -98,9 +106,8 @@ export class BonbonsServer implements IServer {
   private _isDev = true;
 
   constructor(config?: BonbonsServerConfig) {
-    this.$$optionsPreperations();
-    this.$$configsInitialization(config);
     this.$$defaultOptionsInitialization();
+    this.$$configsInitialization(config);
   }
 
   /**
@@ -412,19 +419,17 @@ export class BonbonsServer implements IServer {
     }
   }
 
-  private $$optionsPreperations() {
+  private $$defaultOptionsInitialization() {
     this.option(ENV_MODE, { mode: "development", trace: true });
     this.option(DEPLOY_MODE, { port: 3000 });
     this.option(CONFIG_COLLECTION, this._configs);
     this.option(DI_CONTAINER, new DIContainer());
+    this.option(ERROR_HANDLER, defaultErrorHandler);
+    this.option(ERROR_PAGE_TEMPLATE, defaultErrorPageTemplate);
     this.option(GLOBAL_LOGGER, BonbonsLogger);
-  }
-
-  private $$defaultOptionsInitialization() {
     this.option(STATIC_TYPED_RESOLVER, TypedSerializer);
     this.option(JSON_RESULT_OPTIONS, DEFAULTS.jsonOptions);
     this.option(STRING_RESULT_OPTIONS, DEFAULTS.stringOption);
-    this.option(ERROR_PAGE_TEMPLATE, DEFAULTS.errorTemplate);
     this.option(BODY_PARSE_OPTIONS, { enableTypes: ["json", "form"] });
     this.option(JSON_FORM_OPTIONS, { jsonLimit: "1mb" });
     this.option(TEXT_FORM_OPTIONS, { textLimit: "1mb" });
@@ -436,6 +441,10 @@ export class BonbonsServer implements IServer {
     this._isDev = mode === "development";
     const { port } = this._configs.get(DEPLOY_MODE);
     this._port = port || 3000;
+    this._readonlyConfigs = { get: this._configs.get.bind(this._configs) };
+    this.singleton(ConfigService, () => this._readonlyConfigs);
+    const handler = this._configs.get(ERROR_HANDLER);
+    this._mwares.unshift([handler, [this._readonlyConfigs]]);
   }
 
   private $$initLogger() {
@@ -449,8 +458,8 @@ export class BonbonsServer implements IServer {
 
   private $$initDLookup() {
     this._di = this._configs.get(DI_CONTAINER);
-    this.singleton(InjectService, () => ({ get: this._di.get.bind(this._di) }));
-    this.singleton(ConfigService, () => ({ get: this._configs.get.bind(this._configs) }));
+    this._readonlyDI = { get: this._di.get.bind(this._di) };
+    this.singleton(InjectService, () => this._readonlyDI);
   }
 
   private $$initDIContainer() {
@@ -550,7 +559,7 @@ export class BonbonsServer implements IServer {
       const c = new constructor(...list);
       c.$$ctx = getRequestContext(ctx);
       const result: IResult = constructor.prototype[methodName].bind(c)(...this.$$parseFuncParams(ctx, route));
-      resolveResult(ctx, result, this._di.get(ConfigService));
+      resolveResult(ctx, result, this._readonlyConfigs);
     });
   }
 
@@ -664,7 +673,7 @@ function resolveResult(ctx: KOAContext, result: IResult, configs: ReadonlyConfig
   if (isAsync) {
     (<Promise<SyncResult>>result)
       .then(r => resolveResult(ctx, r, configs, true))
-      .catch((error: Error) => ctx.body = configs.get(ERROR_PAGE_TEMPLATE).render(error));
+      .catch(async (error: Error) => ctx.body = await (configs.get(ERROR_PAGE_TEMPLATE)(configs)).render(error));
   } else {
     if (!result) { ctx.body = ""; return; }
     if (typeof result === "string") { ctx.body = result; return; }

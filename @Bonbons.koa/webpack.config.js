@@ -1,4 +1,5 @@
 const webpack = require("webpack");
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const path = require("path");
 
@@ -18,11 +19,20 @@ module.exports = {
     modules: ["node_modules"],
     extensions: [".js", ".ts"]
   },
+  plugins: [
+    new CopyWebpackPlugin([
+      { from: 'src/assets', to: 'assets' },
+    ])
+  ],
   module: {
     rules: [
       {
         test: /\.ts$/,
         loader: 'ts-loader'
+      },
+      {
+        test: /\.html$/,
+        loader: 'raw-loader'
       }
     ]
   }
