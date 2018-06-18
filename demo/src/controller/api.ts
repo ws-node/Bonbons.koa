@@ -24,4 +24,10 @@ export class APIController extends BaseController {
     });
   }
 
+  @Method("GET")
+  @Route("/error")
+  public Error() {
+    throw new Error("wgnm!!!!!!@@@@");
+  }
+
 }

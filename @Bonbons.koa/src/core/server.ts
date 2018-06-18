@@ -65,6 +65,7 @@ import {
   defaultErrorHandler,
   defaultErrorPageTemplate
 } from "../plugins/errorHandler";
+import { TPL_RENDER, defaultViewTplRender } from "./../plugins/render";
 
 const { green, cyan, red, blue, magenta, yellow } = ColorsHelper;
 
@@ -426,6 +427,7 @@ export class BonbonsServer implements IServer {
     this.option(DI_CONTAINER, new DIContainer());
     this.option(ERROR_HANDLER, defaultErrorHandler);
     this.option(ERROR_PAGE_TEMPLATE, defaultErrorPageTemplate);
+    this.option(TPL_RENDER, defaultViewTplRender);
     this.option(GLOBAL_LOGGER, BonbonsLogger);
     this.option(STATIC_TYPED_RESOLVER, TypedSerializer);
     this.option(JSON_RESULT_OPTIONS, DEFAULTS.jsonOptions);
@@ -671,9 +673,7 @@ function controllerError(ctlr: any) {
 function resolveResult(ctx: KOAContext, result: IResult, configs: ReadonlyConfigs, isSync?: boolean) {
   const isAsync = isSync === undefined ? TypeCheck.isFromCustomClass(result || {}, Promise) : !isSync;
   if (isAsync) {
-    (<Promise<SyncResult>>result)
-      .then(r => resolveResult(ctx, r, configs, true))
-      .catch(async (error: Error) => ctx.body = await (configs.get(ERROR_PAGE_TEMPLATE)(configs)).render(error));
+    (<Promise<SyncResult>>result).then(r => resolveResult(ctx, r, configs, true));
   } else {
     if (!result) { ctx.body = ""; return; }
     if (typeof result === "string") { ctx.body = result; return; }

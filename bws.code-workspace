@@ -1,13 +1,13 @@
 {
 	"folders": [
 		{
+			"path": "test"
+		},
+		{
 			"path": "@Bonbons.koa"
 		},
 		{
 			"path": "demo"
-		},
-		{
-			"path": "test"
 		}
 	]
 }

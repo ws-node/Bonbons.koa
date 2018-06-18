@@ -9,12 +9,6 @@ import { TestController } from "./src/controller/test";
 import { MoreController } from "./src/controller/more";
 import { DemoPipe } from "./src/pipes/demo.pipe";
 
-import webpack from "webpack";
-import webpackDevMiddleware from "koa-webpack-dev-middleware";
-import webpackHotMiddleware from "koa-webpack-hot-middleware";
-import config from "./webpack.config";
-const compiler = webpack(config);
-
 Bonbons.New
   .scoped(ImplementService)
   .scoped(ABC, ImplementService)
@@ -23,10 +17,8 @@ Bonbons.New
   .controller(MoreController)
   .pipe(DemoPipe)
   .option(TOKEN_TEST, valueTest)
-  .option(ENV_MODE, { mode: "production", trace: true })
+  .option(ENV_MODE, { mode: "development", trace: true })
   .option(JSON_RESULT_OPTIONS, { staticType: true, resolver: JsonResultResolvers.decamelize })
-  .use(webpackDevMiddleware, compiler, { noInfo: true, publicPath: config.output.publicPath })
-  .use(webpackHotMiddleware, compiler)
   .start();
 
 // @BonbonsApp({

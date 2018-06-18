@@ -19,9 +19,12 @@ module.exports = {
     modules: ["node_modules"],
     extensions: [".js", ".ts"]
   },
+  node: {
+    __dirname: false
+  },
   plugins: [
     new CopyWebpackPlugin([
-      { from: 'src/assets', to: 'assets' },
+      { from: 'assets', to: 'assets' },
     ])
   ],
   module: {

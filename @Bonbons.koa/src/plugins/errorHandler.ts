@@ -2,13 +2,17 @@ import { createToken, ENV_MODE, DI_CONTAINER } from "../di";
 import { KOAContext } from "../metadata/source";
 import { ConfigsCollection } from "../metadata/di";
 import { GlobalLogger } from "./logger";
-import { default as fs } from "fs";
+import { TPL_RENDER } from "./render";
 
-async function readFile(path: string) {
-  return new Promise((resolve, reject) => {
-    fs.readFile(path, (err, data) => {
-      if (!err) reject(err);
-      else resolve(data);
+import * as iconv from "iconv-lite";
+import { default as fs } from "fs";
+import { default as path } from "path";
+
+async function readAssets(xpath: string): Promise<string> {
+  return new Promise<any>((resolve, reject) => {
+    fs.readFile(((<any>global).$BonbonsRoot + `/assets/${xpath}`), (error, data) => {
+      if (error) reject(error);
+      else resolve(iconv.decode(data, "utf8"));
     });
   });
 }
@@ -18,7 +22,7 @@ export interface ErrorHandler {
 }
 
 export interface ErrorPageTemplate {
-  (configs: ConfigsCollection): { render(error): string };
+  (configs: ConfigsCollection): { render: (error) => Promise<string | Buffer> };
 }
 
 export const ERROR_HANDLER = createToken<ErrorHandler>("ERROR_HANDLER");
@@ -32,6 +36,7 @@ export function defaultErrorHandler(configs: ConfigsCollection) {
       const logger = configs.get(DI_CONTAINER).get<GlobalLogger>(GlobalLogger);
       const tplHandler = configs.get(ERROR_PAGE_TEMPLATE)(configs);
       ctx.status = 500;
+      ctx.type = "text/html";
       ctx.body = await tplHandler.render(error);
       logger.error("core", "defaultErrorHandler", error.stack);
     }
@@ -40,26 +45,19 @@ export function defaultErrorHandler(configs: ConfigsCollection) {
 
 export function defaultErrorPageTemplate(configs: ConfigsCollection) {
   const { mode } = configs.get(ENV_MODE);
+  const render = configs.get(TPL_RENDER);
+  let fileName = "500.html";
   if (mode === "development") {
-    return ({
-      render: (error) => !error ? "unhandled error." : `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-    <meta charset="utf-8">
-    <title>Error - Development</title>
-    </head>
-    <body>
-    <pre>${error.stack || ""}</pre>
-    </body>
-    </html>
-    `});
+    fileName = "500.dev.html";
   }
   return ({
-    render: async () => {
-      const file = await readFile("assets/error.html");
-      console.log(file);
-      return file;
+    render: async (error) => {
+      try {
+        const file = await readAssets(`templates/${fileName}`);
+        return render(file, { stack: error && error.stack });
+      } catch (error) {
+        return error;
+      }
     }
   });
 }

@@ -9,6 +9,6 @@ Bonbons.New
   .controller(APIController)
   .singleton(AppService)
   .scoped(ScopeContract, ScopeService)
-  .option(ENV_MODE, { mode: "production" })
+  .option(ENV_MODE, { mode: "development" })
   .option(DEPLOY_MODE, { port: 3200 })
   .start();
