@@ -1,22 +1,23 @@
+import { setColor } from "./console-color";
 
 export class BonbonsError extends Error {
 
   constructor(error?: string) {
     super(error);
     this.name = "BonbonsError";
-    this.message = `[Bonbons.koa] throws : \n\n${error}\n`;
+    this.message = `[${setColor("yellow", "Bonbons.koa")}] ${setColor("green", "throws")} : \n\n${error}\n`;
   }
 
 }
 
 export function ERROR(error: string, more?: any) {
-  return new BonbonsError(`${error} \n[ more details ] : ${(JSON.stringify(more)) || "none"}`);
+  return new BonbonsError(`${setColor("cyan", error)} \n[ ${setColor("magenta", "more details")} ] : ${(JSON.stringify(more)) || "none"}`);
 }
 
 export function invalidOperation(error: string, more?: any) {
-  return ERROR(`[ INVALID OPERATION ] : ${error}`, more);
+  return ERROR(`[ ${setColor("red", "INVALID OPERATION")} ] : ${error}`, more);
 }
 
 export function invalidParam(error: string, more?: any) {
-  return ERROR(`[ INVALID PARAM ] : ${error}`, more);
+  return ERROR(`[ ${setColor("red", "INVALID PARAM")} ] : ${error}`, more);
 }
