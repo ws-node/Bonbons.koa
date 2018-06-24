@@ -44,7 +44,7 @@ export function defaultErrorHandler(configs: ConfigsCollection) {
 
 export function defaultErrorPageTemplate(configs: ConfigsCollection) {
   const { mode } = configs.get(ENV_MODE);
-  const render = configs.get(TPL_RENDER);
+  const { render } = configs.get(TPL_RENDER);
   let fileName = "500.html";
   if (mode === "development") {
     fileName = "500.dev.html";

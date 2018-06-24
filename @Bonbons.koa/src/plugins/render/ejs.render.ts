@@ -1,13 +1,6 @@
-import { createToken } from "../di";
-import { ConfigsCollection } from "../metadata/di";
+import { default as ejs } from "ejs";
 
-export interface ViewTplRender {
-  (tpl: string, data?: any): string;
-}
-
-export const TPL_RENDER = createToken<ViewTplRender>("TPL_RENDER");
-
-export function defaultViewTplRender(tpl: string, data?: any) {
+export function ejsViewTplRender(tpl: string, data?: any) {
   const reg = /{{([^}{]+)}}/g;
   if (!data) return tpl;
   return tpl.replace(reg, ($match: string, $1: string) => {

@@ -65,7 +65,7 @@ import {
   defaultErrorHandler,
   defaultErrorPageTemplate
 } from "../plugins/errorHandler";
-import { TPL_RENDER, defaultViewTplRender } from "./../plugins/render";
+import { TPL_RENDER, defaultViewTplRenderOptions } from "./../plugins/render";
 
 const { green, cyan, red, blue, magenta, yellow } = ColorsHelper;
 
@@ -365,10 +365,10 @@ export class BonbonsServer implements IServer {
    * ---
    * @description
    * @author Big Mogician
-   * @param {boolean} dev
+   * @param {(configs: ReadonlyConfigs) => void} [run]
    * @memberof BonbonsServer
    */
-  public start(): void {
+  public start(run?: (configs: ReadonlyConfigs) => void): void {
     this.$$useCommonOptions();
     this.$$initLogger();
     this.$$initDLookup();
@@ -377,6 +377,9 @@ export class BonbonsServer implements IServer {
     this.$$useRouters();
     this.$$useMiddlewares();
     this._app.listen(this._port);
+    if (run) {
+      run(this._readonlyConfigs);
+    }
     if (!this._isDev) {
       this._clearServer();
     }
@@ -427,7 +430,7 @@ export class BonbonsServer implements IServer {
     this.option(DI_CONTAINER, new DIContainer());
     this.option(ERROR_HANDLER, defaultErrorHandler);
     this.option(ERROR_PAGE_TEMPLATE, defaultErrorPageTemplate);
-    this.option(TPL_RENDER, defaultViewTplRender);
+    this.option(TPL_RENDER, defaultViewTplRenderOptions);
     this.option(GLOBAL_LOGGER, BonbonsLogger);
     this.option(STATIC_TYPED_RESOLVER, TypedSerializer);
     this.option(JSON_RESULT_OPTIONS, DEFAULTS.jsonOptions);
@@ -466,10 +469,16 @@ export class BonbonsServer implements IServer {
 
   private $$initDIContainer() {
     this._logger.debug("core", this.$$initDIContainer.name, "init DI container.");
-    this._logger.trace("core", this.$$initDIContainer.name, `scoped inject entry count : [ ${green(this._scoped.length)} ].`);
-    this._scoped.forEach(([tk, imp]) => this.$$injectaFinally(tk, imp, InjectScope.Scoped));
-    this._logger.trace("core", this.$$initDIContainer.name, `singleton inject entry count : [ ${green(this._singleton.length)} ].`);
-    this._singleton.forEach(([tk, imp]) => this.$$injectaFinally(tk, imp, InjectScope.Singleton));
+    this._logger.debug("core", this.$$initDIContainer.name, `scoped inject entry count : [ ${green(this._scoped.length)} ].`);
+    this._scoped.forEach(([tk, imp]) => {
+      this.$$injectaFinally(tk, imp, InjectScope.Scoped);
+      this._logger.trace("core", this.$$initDIContainer.name, `relation add : [ @${cyan((<any>tk).name)} -> @${blue(logInjectImp(imp))} ].`);
+    });
+    this._logger.debug("core", this.$$initDIContainer.name, `singleton inject entry count : [ ${green(this._singleton.length)} ].`);
+    this._singleton.forEach(([tk, imp]) => {
+      this.$$injectaFinally(tk, imp, InjectScope.Singleton);
+      this._logger.trace("core", this.$$initDIContainer.name, `relation add : [ @${cyan((<any>tk).name)} -> @${blue(logInjectImp(imp))} ].`);
+    });
     this._di.complete();
     this._logger.debug("core", this.$$initDIContainer.name, `complete with di container : [ total injectable count -> ${green(this._di.count)} ].`);
     this._logger.debug("core", this.$$initDIContainer.name, "-----------------------");
@@ -596,6 +605,19 @@ export class BonbonsServer implements IServer {
     return invoke;
   }
 
+}
+
+function logInjectImp(imp: any) {
+  if (imp.name) {
+    return imp.name;
+  }
+  if (Object.prototype.toString.call(imp.__proto__) === "[object Function]") {
+    return "[factory]";
+  }
+  if (imp.__proto__.constructor) {
+    return imp.__proto__.constructor.name;
+  }
+  return "[instance]";
 }
 
 function getRequestContext(ctx: KOAContext) {
