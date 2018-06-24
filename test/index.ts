@@ -1,6 +1,7 @@
+import { default as path } from "path";
 import {
   Bonbons, JSON_RESULT_OPTIONS, JsonResultResolvers,
-  BonbonsApp, BaseApp, ENV_MODE, DEPLOY_MODE, TPL_RENDER
+  BonbonsApp, BaseApp, ENV_MODE, DEPLOY_MODE, TPL_RENDER_OPTIONS, Renders
 } from "@Bonbons";
 import { TestService } from "./src/service/test";
 import { ABC, ImplementService } from "./src/service/imp";
@@ -19,9 +20,9 @@ Bonbons.New
   .option(TOKEN_TEST, valueTest)
   .option(ENV_MODE, { mode: "development", trace: true })
   .option(JSON_RESULT_OPTIONS, { staticType: true, resolver: JsonResultResolvers.decamelize })
-  .option(TPL_RENDER, { root: "/views" })
+  .option(TPL_RENDER_OPTIONS, { root: path.resolve(__dirname, "./src/views"), extensions: "ejs", render: Renders.ejs })
   .start(((configs) => {
-    console.log(configs.get(TPL_RENDER));
+    console.log(configs.get(TPL_RENDER_OPTIONS));
   }));
 
 // @BonbonsApp({

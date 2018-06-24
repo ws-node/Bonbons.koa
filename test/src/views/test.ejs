@@ -258,7 +258,7 @@
 
   <style>
     .background-color {
-      background-color: rgba(189, 83, 90, 1) !important;
+      background-color: rgb(28, 182, 123) !important;
     }
 
 
@@ -289,16 +289,16 @@
 <body class="plain error-page-wrapper background-color background-image">
   <div class="content-container">
     <div class="head-line secondary-text-color">
-      500
+      200
     </div>
     <div class="subheader primary-text-color">
-      Internal Server Error
+      Load succcessfully
     </div>
     <hr>
     <div class="clearfix"></div>
     <div class="context primary-text-color">
       <p>
-        <pre style="font-size: 14px;">{{stack}}</pre>
+        <pre style="font-size: 14px;"><%= global.JSON.stringify(data, null, "  ") %></pre>
       </p>
     </div>
     <div class="buttons-container">

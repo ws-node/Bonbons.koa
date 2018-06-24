@@ -12,6 +12,8 @@ export class JsonResult implements IMethodResult {
 
   private options: JsonResultOptions;
 
+  public type = "application/json";
+
   constructor(private json: any, options?: JsonResultOptions) {
     this.options = options || {};
   }

@@ -1,4 +1,4 @@
-import { InjectScope, IBonbonsInjectable, InjectDIToken, ImplementToken, BonbonsDeptFactory, ImplementDIValue } from "./injectable";
+import { InjectScope, IBonbonsInjectable, InjectDIToken, ImplementToken, BonbonsDeptFactory, ImplementDIValue, InjectableToken } from "./injectable";
 import { IConstructor } from "./base";
 
 export interface BonbonsToken<T> {
@@ -28,7 +28,7 @@ export interface BonbonsDIEntry {
 }
 
 export interface ReadonlyDIContainer {
-  get<T>(token: InjectDIToken): T;
+  get<T>(token: IConstructor<T> | InjectableToken<T>): T;
 }
 
 export interface BonbonsDIContainer extends ReadonlyDIContainer {

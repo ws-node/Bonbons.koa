@@ -48,7 +48,8 @@ export interface IBonbonsController {
 export type IController = IConstructor<IBonbonsController>;
 
 export interface IMethodResult {
-  toString(configs: ConfigsCollection): string;
+  type?: string;
+  toString(configs: ConfigsCollection): string | Promise<string>;
 }
 
 export interface IBuildInTypeResult {

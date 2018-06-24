@@ -3,10 +3,15 @@ import { JsonResultOptions, StringResultOptions } from "../metadata/options";
 import { JsonResult } from "./result/json";
 import { StringResult } from "./result/string";
 import { Async, IBonbonsContext as IContext } from "../metadata/base";
+import { ReadonlyDIContainer } from "../metadata/di";
+import { RenderService } from "../plugins/render";
+import { RenderResult } from "./result/render";
 
 export abstract class BaseController {
 
   private readonly $$ctx!: IContext;
+  private readonly $$injector!: ReadonlyDIContainer;
+  protected views: any = {};
   public get context() { return this.$$ctx; }
 
   /**
@@ -35,6 +40,10 @@ export abstract class BaseController {
    */
   protected toStringfy(str: string, options?: StringResultOptions): StringResult {
     return new StringResult(str, options);
+  }
+
+  protected render(name: string): RenderResult {
+    return new RenderResult(name, this.views);
   }
 
   /**

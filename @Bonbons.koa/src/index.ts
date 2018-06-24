@@ -11,6 +11,11 @@ export {
   ERROR_HANDLER,
   ERROR_PAGE_TEMPLATE
 } from "./plugins/errorHandler";
-export { TPL_RENDER } from "./plugins/render";
+export {
+  TPL_RENDER_OPTIONS,
+  TPL_RENDER_COMPILER,
+  Renders,
+  RenderService
+} from "./plugins/render";
 
 export * from "./utils/uuid";

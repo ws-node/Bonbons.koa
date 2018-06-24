@@ -63,9 +63,19 @@ import {
   ERROR_HANDLER,
   ERROR_PAGE_TEMPLATE,
   defaultErrorHandler,
-  defaultErrorPageTemplate
+  defaultErrorPageTemplate,
+  ERROR_RENDER_OPRIONS,
+  defaultErrorPageRenderOptions
 } from "../plugins/errorHandler";
-import { TPL_RENDER, defaultViewTplRenderOptions } from "./../plugins/render";
+import {
+  TPL_RENDER_OPTIONS,
+  defaultViewTplRenderOptions,
+  TPL_RENDER_COMPILER,
+  defaultTplRenderCompilerOptions,
+  RenderService,
+  BonbonsRender
+} from "./../plugins/render";
+import { FILE_LOADER, defaultFileLoaderOptions } from "../plugins/fileLoader";
 
 const { green, cyan, red, blue, magenta, yellow } = ColorsHelper;
 
@@ -377,6 +387,7 @@ export class BonbonsServer implements IServer {
     this.$$useRouters();
     this.$$useMiddlewares();
     this._app.listen(this._port);
+    this.$$afterRun();
     if (run) {
       run(this._readonlyConfigs);
     }
@@ -384,6 +395,11 @@ export class BonbonsServer implements IServer {
       this._clearServer();
     }
     // console.log(this._configs);
+  }
+
+  private $$afterRun() {
+    const { compilerFactory: factory } = this._configs.get(TPL_RENDER_COMPILER);
+    this.option(TPL_RENDER_COMPILER, { compiler: factory && factory(this._readonlyConfigs) });
   }
 
   private _clearServer = () => {
@@ -428,9 +444,12 @@ export class BonbonsServer implements IServer {
     this.option(DEPLOY_MODE, { port: 3000 });
     this.option(CONFIG_COLLECTION, this._configs);
     this.option(DI_CONTAINER, new DIContainer());
+    this.option(FILE_LOADER, defaultFileLoaderOptions);
+    this.option(TPL_RENDER_COMPILER, defaultTplRenderCompilerOptions);
     this.option(ERROR_HANDLER, defaultErrorHandler);
     this.option(ERROR_PAGE_TEMPLATE, defaultErrorPageTemplate);
-    this.option(TPL_RENDER, defaultViewTplRenderOptions);
+    this.option(ERROR_RENDER_OPRIONS, defaultErrorPageRenderOptions);
+    this.option(TPL_RENDER_OPTIONS, defaultViewTplRenderOptions);
     this.option(GLOBAL_LOGGER, BonbonsLogger);
     this.option(STATIC_TYPED_RESOLVER, TypedSerializer);
     this.option(JSON_RESULT_OPTIONS, DEFAULTS.jsonOptions);
@@ -448,6 +467,7 @@ export class BonbonsServer implements IServer {
     this._port = port || 3000;
     this._readonlyConfigs = { get: this._configs.get.bind(this._configs) };
     this.singleton(ConfigService, () => this._readonlyConfigs);
+    this.singleton(RenderService, () => new BonbonsRender(this._readonlyConfigs));
     const handler = this._configs.get(ERROR_HANDLER);
     this._mwares.unshift([handler, [this._readonlyConfigs]]);
   }
@@ -565,12 +585,13 @@ export class BonbonsServer implements IServer {
   }
 
   private $$decideFinalStep(route: IRoute, middlewares: KOAMiddleware[], constructor: any, methodName: string) {
-    middlewares.push((ctx) => {
+    middlewares.push(async (ctx) => {
       const list = this._di.resolveDeps(constructor);
       const c = new constructor(...list);
       c.$$ctx = getRequestContext(ctx);
+      c.$$injector = this._readonlyDI;
       const result: IResult = constructor.prototype[methodName].bind(c)(...this.$$parseFuncParams(ctx, route));
-      resolveResult(ctx, result, this._readonlyConfigs);
+      await resolveResult(ctx, result, this._readonlyConfigs);
     });
   }
 
@@ -692,13 +713,14 @@ function controllerError(ctlr: any) {
   return invalidParam("Controller to be add is invalid. You can only add the controller been decorated by @Controller(...).", { className: ctlr && ctlr.name });
 }
 
-function resolveResult(ctx: KOAContext, result: IResult, configs: ReadonlyConfigs, isSync?: boolean) {
+async function resolveResult(ctx: KOAContext, result: IResult, configs: ReadonlyConfigs, isSync?: boolean) {
   const isAsync = isSync === undefined ? TypeCheck.isFromCustomClass(result || {}, Promise) : !isSync;
   if (isAsync) {
     (<Promise<SyncResult>>result).then(r => resolveResult(ctx, r, configs, true));
   } else {
     if (!result) { ctx.body = ""; return; }
     if (typeof result === "string") { ctx.body = result; return; }
-    ctx.body = (<IMethodResult>result).toString(configs);
+    ctx.type = (<IMethodResult>result).type || "text/plain";
+    ctx.body = await (<IMethodResult>result).toString(configs);
   }
 }
