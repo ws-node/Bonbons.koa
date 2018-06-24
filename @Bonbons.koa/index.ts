@@ -1,9 +1,5 @@
 import path from "path";
+import { BonbonsGlobal } from "./src/utils/global";
 export * from "./src";
 
-declare interface Global extends NodeJS.Global {
-  $BonbonsRoot: string;
-}
-declare const global: Global;
-
-global.$BonbonsRoot = path.resolve(__dirname);
+BonbonsGlobal.folderRoot = path.resolve(__dirname);

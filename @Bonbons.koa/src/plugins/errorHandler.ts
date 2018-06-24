@@ -1,16 +1,15 @@
+import * as iconv from "iconv-lite";
+import { default as fs } from "fs";
 import { createToken, ENV_MODE, DI_CONTAINER } from "../di";
 import { KOAContext } from "../metadata/source";
 import { ConfigsCollection } from "../metadata/di";
 import { GlobalLogger } from "./logger";
 import { TPL_RENDER } from "./render";
-
-import * as iconv from "iconv-lite";
-import { default as fs } from "fs";
-import { default as path } from "path";
+import { BonbonsGlobal as GLOBAL } from "../utils/global";
 
 async function readAssets(xpath: string): Promise<string> {
   return new Promise<any>((resolve, reject) => {
-    fs.readFile(((<any>global).$BonbonsRoot + `/assets/${xpath}`), (error, data) => {
+    fs.readFile((GLOBAL.folderRoot + `/assets/${xpath}`), (error, data) => {
       if (error) reject(error);
       else resolve(iconv.decode(data, "utf8"));
     });
